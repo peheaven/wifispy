@@ -73,6 +73,7 @@
 #include "airodump-ng.h"
 #include "osdep/common.h"
 #include "common.h"
+#include "mongoose.h"
 
 // libgcrypt thread callback definition for libgcrypt < 1.6.0
 #ifdef USE_GCRYPT
@@ -644,6 +645,8 @@ char usage[] =
 "  usage: airodump-ng <options> <interface>[,<interface>,...]\n"
 "\n"
 "  Options:\n"
+"      --restport            : Http rest port\n"
+"      -p		             : Same as --restport\n"
 "      --ivs                 : Save only captured IVs\n"
 "      --gpsd                : Use GPSd\n"
 "      --write      <prefix> : Dump file prefix\n"
