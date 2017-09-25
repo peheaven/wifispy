@@ -476,6 +476,9 @@ struct globals
     int file_write_interval;
     u_int maxsize_wps_seen;
     int show_wps;
+	
+	int rest_port;
+	int was_rest_mode;
 }
 G;
 
