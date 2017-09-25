@@ -197,6 +197,10 @@ void resetSelection()
     G.do_pause=0;
     G.do_sort_always=0;
     memset(G.selected_bssid, '\x00', 6);
+	
+	// liudf added 20170925
+	G.was_rest_mode=1;
+	G.rest_port=8009;
 }
 
 #define KEY_TAB		0x09	//switch between APs/clients for scrolling
@@ -487,9 +491,9 @@ struct oui * load_oui_file(void) {
 int check_shared_key(unsigned char *h80211, int caplen)
 {
     int m_bmac, m_smac, m_dmac, n, textlen;
-    char ofn[1024];
-    char text[4096];
-    char prga[4096];
+    char ofn[1024] = {0};
+    char text[4096] = {0};
+    char prga[4096] = {0};
     unsigned int long crc;
 
     if((unsigned)caplen > sizeof(G.sharedkey[0])) return 1;
@@ -828,7 +832,7 @@ void update_rx_quality( )
 int dump_initialize( char *prefix, int ivs_only )
 {
     int i, ofn_len;
-    FILE *f;
+    FILE *f = NULL;
     char * ofn = NULL;
 
 
@@ -868,6 +872,7 @@ int dump_initialize( char *prefix, int ivs_only )
     while( i < NB_EXTENSIONS );
 
     G.prefix = (char *) malloc(strlen(prefix) + 1);
+	memset(G.prefix, 0, strlen(prefix) + 1);
     memcpy(G.prefix, prefix, strlen(prefix) + 1);
 
     /* create the output CSV file */
@@ -1010,8 +1015,8 @@ int dump_initialize( char *prefix, int ivs_only )
 int update_dataps()
 {
     struct timeval tv;
-    struct AP_info *ap_cur;
-    struct NA_info *na_cur;
+    struct AP_info *ap_cur = NULL;
+    struct NA_info *na_cur = NULL;
     int sec, usec, diff, ps;
     float pause;
 
@@ -1026,7 +1031,7 @@ int update_dataps()
 #if defined(__x86_64__) && defined(__CYGWIN__)
         pause = (((float)(sec*(0.0f + 1000000) + usec))/((0.0f + 1000000)));
 #else
-	pause = (((float)(sec*1000000.0f + usec))/(1000000.0f));
+		pause = (((float)(sec*1000000.0f + usec))/(1000000.0f));
 #endif
         if( pause > 2.0f )
         {
@@ -1048,7 +1053,7 @@ int update_dataps()
 #if defined(__x86_64__) && defined(__CYGWIN__)
         pause = (((float)(sec*(0.0f + 1000000) + usec))/((0.0f + 1000000)));
 #else
-	pause = (((float)(sec*1000000.0f + usec))/(1000000.0f));
+		pause = (((float)(sec*1000000.0f + usec))/(1000000.0f));
 #endif
         if( pause > 2.0f )
         {
@@ -1065,8 +1070,8 @@ int update_dataps()
 
 int list_tail_free(struct pkt_buf **list)
 {
-    struct pkt_buf **pkts;
-    struct pkt_buf *next;
+    struct pkt_buf **pkts = NULL;
+    struct pkt_buf *next = NULL;
 
     if(list == NULL) return 1;
 
@@ -1235,11 +1240,11 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
     struct timeval tv;
     struct ivs2_pkthdr ivs2;
     unsigned char *p, *org_p, c;
-    unsigned char bssid[6];
-    unsigned char stmac[6];
-    unsigned char namac[6];
-    unsigned char clear[2048];
-    int weight[16];
+    unsigned char bssid[6] = {0};
+    unsigned char stmac[6] = {0};
+    unsigned char namac[6] = {0};
+    unsigned char clear[2048] = {0};
+    int weight[16] = {0};
     int num_xor=0;
 
     struct AP_info *ap_cur = NULL;
@@ -1334,7 +1339,7 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 			ap_cur->manuf = get_manufacturer(ap_cur->bssid[0], ap_cur->bssid[1], ap_cur->bssid[2]);
 		}
 
-	ap_cur->nb_pkt = 0;
+		ap_cur->nb_pkt = 0;
         ap_cur->prev = ap_prv;
 
         ap_cur->tinit = time( NULL );
@@ -1353,7 +1358,7 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 
         ap_cur->uiv_root = uniqueiv_init();
 
-	ap_cur->nb_data = 0;
+		ap_cur->nb_data = 0;
         ap_cur->nb_dataps = 0;
         ap_cur->nb_data_old = 0;
         gettimeofday(&(ap_cur->tv), NULL);
@@ -1383,8 +1388,8 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
         ap_cur->is_decloak = 0;
         ap_cur->packets = NULL;
 
-	ap_cur->marked = 0;
-	ap_cur->marked_color = 1;
+		ap_cur->marked = 0;
+		ap_cur->marked_color = 1;
 
         ap_cur->data_root = NULL;
         ap_cur->EAP_detected = 0;
@@ -1403,27 +1408,22 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 
     if( ( ( h80211[1] & 3 ) == 0 &&
             memcmp( h80211 + 10, bssid, 6 ) == 0 ) ||
-        ( ( h80211[1] & 3 ) == 2 ) )
-    {
+        ( ( h80211[1] & 3 ) == 2 ) ) {
         ap_cur->power_index = ( ap_cur->power_index + 1 ) % NB_PWR;
         ap_cur->power_lvl[ap_cur->power_index] = ri->ri_power;
 
         ap_cur->avg_power = 0;
 
-        for( i = 0, n = 0; i < NB_PWR; i++ )
-        {
-            if( ap_cur->power_lvl[i] != -1 )
-            {
+        for( i = 0, n = 0; i < NB_PWR; i++ ) {
+            if( ap_cur->power_lvl[i] != -1 ) {
                 ap_cur->avg_power += ap_cur->power_lvl[i];
                 n++;
             }
         }
 
-        if( n > 0 )
-        {
+        if( n > 0 ) {
             ap_cur->avg_power /= n;
-            if( ap_cur->avg_power > ap_cur->best_power )
-            {
+            if( ap_cur->avg_power > ap_cur->best_power ) {
                 ap_cur->best_power = ap_cur->avg_power;
                 memcpy(ap_cur->gps_loc_best, G.gps_loc, sizeof(float)*5);
             }
@@ -1457,8 +1457,7 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 //         if(ap_cur->fcapt >= QLT_COUNT) update_rx_quality();
     }
 
-    switch( h80211[0] )
-    {
+    switch( h80211[0] ) {
         case  0x80:
             ap_cur->nb_bcn++;
         case  0x50:
@@ -1472,8 +1471,7 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 
     /* locate the station MAC in the 802.11 header */
 
-    switch( h80211[1] & 3 )
-    {
+    switch( h80211[1] & 3 ) {
         case  0:
 
             /* if management, check that SA != BSSID */
@@ -1506,8 +1504,7 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
     st_cur = G.st_1st;
     st_prv = NULL;
 
-    while( st_cur != NULL )
-    {
+    while( st_cur != NULL ) {
         if( ! memcmp( st_cur->stmac, stmac, 6 ) )
             break;
 
@@ -1517,11 +1514,9 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 
     /* if it's a new client, add it */
 
-    if( st_cur == NULL )
-    {
+    if( st_cur == NULL ) {
         if( ! ( st_cur = (struct ST_info *) malloc(
-                         sizeof( struct ST_info ) ) ) )
-        {
+                         sizeof( struct ST_info ) ) ) ) {
             perror( "malloc failed" );
             return( 1 );
         }
@@ -1542,7 +1537,7 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 			st_cur->manuf = get_manufacturer(st_cur->stmac[0], st_cur->stmac[1], st_cur->stmac[2]);
 		}
 
-	st_cur->nb_pkt = 0;
+		st_cur->nb_pkt = 0;
 
         st_cur->prev = st_prv;
 
@@ -1558,12 +1553,11 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
         st_cur->lastseq = 0;
         st_cur->qos_fr_ds = 0;
         st_cur->qos_to_ds = 0;
-	st_cur->channel = 0;
+		st_cur->channel = 0;
 
         gettimeofday( &(st_cur->ftimer), NULL);
 
-        for( i = 0; i < NB_PRB; i++ )
-        {
+        for( i = 0; i < NB_PRB; i++ ) {
             memset( st_cur->probes[i], 0, sizeof(
                     st_cur->probes[i] ) );
             st_cur->ssid_length[i] = 0;
@@ -1590,17 +1584,15 @@ int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int 
 
     if( ( ( h80211[1] & 3 ) == 0 &&
             memcmp( h80211 + 10, bssid, 6 ) != 0 ) ||
-        ( ( h80211[1] & 3 ) == 1 ) )
-    {
+        ( ( h80211[1] & 3 ) == 1 ) ) {
         st_cur->power = ri->ri_power;
         st_cur->rate_from = ri->ri_rate;
-	if(ri->ri_channel > 0 && ri->ri_channel <= HIGHEST_CHANNEL)
-		st_cur->channel = ri->ri_channel;
-	else
-		st_cur->channel = G.channel[cardnum];
+		if(ri->ri_channel > 0 && ri->ri_channel <= HIGHEST_CHANNEL)
+			st_cur->channel = ri->ri_channel;
+		else
+			st_cur->channel = G.channel[cardnum];
 
-        if(st_cur->lastseq != 0)
-        {
+        if(st_cur->lastseq != 0) {
             msd = seq - st_cur->lastseq - 1;
             if(msd > 0 && msd < 1000)
                 st_cur->missed += msd;
@@ -1614,18 +1606,15 @@ skip_station:
 
     /* packet parsing: Probe Request */
 
-    if( h80211[0] == 0x40 && st_cur != NULL )
-    {
+    if( h80211[0] == 0x40 && st_cur != NULL ) {
         p = h80211 + 24;
 
-        while( p < h80211 + caplen )
-        {
+        while( p < h80211 + caplen ) {
             if( p + 2 + p[1] > h80211 + caplen )
                 break;
 
             if( p[0] == 0x00 && p[1] > 0 && p[2] != '\0' &&
-                ( p[1] > 1 || p[2] != ' ' ) )
-            {
+                ( p[1] > 1 || p[2] != ' ' ) ) {
 //                n = ( p[1] > 32 ) ? 32 : p[1];
                 n = p[1];
 
@@ -1645,8 +1634,7 @@ skip_station:
                 memcpy( st_cur->probes[st_cur->probe_index], p + 2, n ); //twice?!
                 st_cur->ssid_length[st_cur->probe_index] = n;
 
-                for( i = 0; i < n; i++ )
-                {
+                for( i = 0; i < n; i++ ) {
                     c = p[2 + i];
                     if( c == 0 || ( c > 126 && c < 160 ) ) c = '.';  //could also check ||(c>0 && c<32)
                     st_cur->probes[st_cur->probe_index][i] = c;
@@ -1676,8 +1664,7 @@ skip_probe:
 
         p = h80211 + 36;
 
-        while( p < h80211 + caplen )
-        {
+        while( p < h80211 + caplen ) {
             if( p + 2 + p[1] > h80211 + caplen )
                 break;
 
@@ -1685,8 +1672,7 @@ skip_probe:
             if( p[0] == 0x00 && (ap_cur->ssid_length < p[1]) ) ap_cur->ssid_length = p[1];
 
             if( p[0] == 0x00 && p[1] > 0 && p[2] != '\0' &&
-                ( p[1] > 1 || p[2] != ' ' ) )
-            {
+                ( p[1] > 1 || p[2] != ' ' ) ) {
                 /* found a non-cloaked ESSID */
 
 //                n = ( p[1] > 32 ) ? 32 : p[1];
@@ -1695,14 +1681,12 @@ skip_probe:
                 memset( ap_cur->essid, 0, 256 );
                 memcpy( ap_cur->essid, p + 2, n );
 
-                if( G.f_ivs != NULL && !ap_cur->essid_stored )
-                {
+                if( G.f_ivs != NULL && !ap_cur->essid_stored ) {
                     memset(&ivs2, '\x00', sizeof(struct ivs2_pkthdr));
                     ivs2.flags |= IVS2_ESSID;
                     ivs2.len += ap_cur->ssid_length;
 
-                    if( memcmp( G.prev_bssid, ap_cur->bssid, 6 ) != 0 )
-                    {
+                    if( memcmp( G.prev_bssid, ap_cur->bssid, 6 ) != 0 ) {
                         ivs2.flags |= IVS2_BSSID;
                         ivs2.len += 6;
                         memcpy( G.prev_bssid, ap_cur->bssid,  6 );
@@ -1710,18 +1694,15 @@ skip_probe:
 
                     /* write header */
                     if( fwrite( &ivs2, 1, sizeof(struct ivs2_pkthdr), G.f_ivs )
-                        != (size_t) sizeof(struct ivs2_pkthdr) )
-                    {
+                        != (size_t) sizeof(struct ivs2_pkthdr) ) {
                         perror( "fwrite(IV header) failed" );
                         return( 1 );
                     }
 
                     /* write BSSID */
-                    if(ivs2.flags & IVS2_BSSID)
-                    {
+                    if(ivs2.flags & IVS2_BSSID) {
                         if( fwrite( ap_cur->bssid, 1, 6, G.f_ivs )
-                            != (size_t) 6 )
-                        {
+                            != (size_t) 6 ) {
                             perror( "fwrite(IV bssid) failed" );
                             return( 1 );
                         }
@@ -1729,8 +1710,7 @@ skip_probe:
 
                     /* write essid */
                     if( fwrite( ap_cur->essid, 1, ap_cur->ssid_length, G.f_ivs )
-                        != (size_t) ap_cur->ssid_length )
-                    {
+                        != (size_t) ap_cur->ssid_length ) {
                         perror( "fwrite(IV essid) failed" );
                         return( 1 );
                     }
@@ -1746,8 +1726,7 @@ skip_probe:
 
             /* get the maximum speed in Mb and the AP's channel */
 
-            if( p[0] == 0x01 || p[0] == 0x32 )
-            {
+            if( p[0] == 0x01 || p[0] == 0x32 ) {
                 if(ap_cur->max_speed < ( p[1 + p[1]] & 0x7F ) / 2)
                     ap_cur->max_speed = ( p[1 + p[1]] & 0x7F ) / 2;
             }
@@ -1755,8 +1734,8 @@ skip_probe:
             if( p[0] == 0x03 )
                 ap_cur->channel = p[2];
             /* also get the channel from ht information->primary channel */
-            else if (p[0] == 0x3d){
-		ap_cur->channel = p[2];
+            else if (p[0] == 0x3d) {
+				ap_cur->channel = p[2];
             }
 
             p += 2 + p[1];
@@ -1765,12 +1744,10 @@ skip_probe:
 
     /* packet parsing: Beacon & Probe response */
 
-    if( (h80211[0] == 0x80 || h80211[0] == 0x50) && caplen > 38)
-    {
+    if( (h80211[0] == 0x80 || h80211[0] == 0x50) && caplen > 38) {
         p=h80211+36;         //ignore hdr + fixed params
 
-        while( p < h80211 + caplen )
-        {
+        while( p < h80211 + caplen ) {
             type = p[0];
             length = p[1];
             if(p+2+length > h80211 + caplen) {
@@ -1779,28 +1756,24 @@ skip_probe:
                 break;
             }
 
-            if( (type == 0xDD && (length >= 8) && (memcmp(p+2, "\x00\x50\xF2\x01\x01\x00", 6) == 0)) || (type == 0x30) )
-            {
+            if( (type == 0xDD && (length >= 8) && (memcmp(p+2, "\x00\x50\xF2\x01\x01\x00", 6) == 0)) || (type == 0x30) ) {
                 ap_cur->security &= ~(STD_WEP|ENC_WEP|STD_WPA);
 
                 org_p = p;
                 offset = 0;
 
-                if(type == 0xDD)
-                {
+                if(type == 0xDD) {
                     //WPA defined in vendor specific tag -> WPA1 support
                     ap_cur->security |= STD_WPA;
                     offset = 4;
                 }
 
-                if(type == 0x30)
-                {
+                if(type == 0x30) {
                     ap_cur->security |= STD_WPA2;
                     offset = 0;
                 }
 
-                if(length < (18+offset))
-                {
+                if(length < (18+offset)) {
                     p += length+2;
                     continue;
                 }
@@ -1815,21 +1788,16 @@ skip_probe:
 
                 p += (10+offset);
 
-                if(type != 0x30)
-                {
+                if(type != 0x30) {
                     if( p + (4*numuni) + (2+4*numauth) > h80211+caplen)
                         break;
-                }
-                else
-                {
+                } else {
                     if( p + (4*numuni) + (2+4*numauth) + 2 > h80211+caplen)
                         break;
                 }
 
-                for(i=0; i<numuni; i++)
-                {
-                    switch(p[i*4+3])
-                    {
+                for(i=0; i<numuni; i++) {
+                    switch(p[i*4+3]) {
                     case 0x01:
                         ap_cur->security |= ENC_WEP;
                         break;
@@ -1852,10 +1820,8 @@ skip_probe:
 
                 p += 2+4*numuni;
 
-                for(i=0; i<numauth; i++)
-                {
-                    switch(p[i*4+3])
-                    {
+                for(i=0; i<numauth; i++) {
+                    switch(p[i*4+3]) {
                     case 0x01:
                         ap_cur->security |= AUTH_MGT;
                         break;
@@ -1872,25 +1838,19 @@ skip_probe:
                 if( type == 0x30 ) p += 2;
 
                 p = org_p + length+2;
-            }
-            else if( (type == 0xDD && (length >= 8) && (memcmp(p+2, "\x00\x50\xF2\x02\x01\x01", 6) == 0)))
-            {
+            } else if( (type == 0xDD && (length >= 8) && (memcmp(p+2, "\x00\x50\xF2\x02\x01\x01", 6) == 0))) {
                 ap_cur->security |= STD_QOS;
                 p += length+2;
-            }
-            else if( (type == 0xDD && (length >= 4) && (memcmp(p+2, "\x00\x50\xF2\x04", 4) == 0)))
-            {
+            } else if( (type == 0xDD && (length >= 4) && (memcmp(p+2, "\x00\x50\xF2\x04", 4) == 0))) {
                 org_p = p;
                 p+=6;
                 int len = length, subtype = 0, sublen = 0;
-                while(len >= 4)
-                {
+                while(len >= 4) {
                     subtype = (p[0] << 8) + p[1];
                     sublen = (p[2] << 8) + p[3];
                     if(sublen > len)
                         break;
-                    switch(subtype)
-                    {
+                    switch(subtype) {
                     case 0x104a: // WPS Version
                         ap_cur->wps.version = p[4];
                         break;
@@ -2251,9 +2211,7 @@ skip_probe:
 				}
 			}
 
-        }
-        else
-        {
+        } else {
             ap_cur->nb_data++;
         }
 
@@ -2268,8 +2226,7 @@ skip_probe:
         z += 6;     //skip LLC header
 
         /* check ethertype == EAPOL */
-        if( h80211[z] == 0x88 && h80211[z + 1] == 0x8E && (h80211[1] & 0x40) != 0x40 )
-        {
+        if( h80211[z] == 0x88 && h80211[z + 1] == 0x8E && (h80211[1] & 0x40) != 0x40 ) {
 			ap_cur->EAP_detected = 1;
 
             z += 2;     //skip ethertype
