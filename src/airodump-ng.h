@@ -437,6 +437,4 @@ struct globals
 	int was_rest_mode;
 };
 
-extern struct globals G;
-
 #endif
