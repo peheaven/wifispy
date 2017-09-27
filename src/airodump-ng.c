@@ -6702,7 +6702,7 @@ int main( int argc, char *argv[] )
 			
 			case 'p':
 				
-				G.rest_port = atoi(optarg)
+				G.rest_port = atoi(optarg);
 				if (G.rest_port > 0)
 					G.was_rest_mode = 1;
 				
