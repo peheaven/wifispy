@@ -75,6 +75,8 @@
 #include "common.h"
 #include "adu-restful-serv.h"
 
+struct globals G;
+
 const unsigned char llcnull[4] = {0, 0, 0, 0};
 char *f_ext[NB_EXTENSIONS] = { AIRODUMP_NG_CSV_EXT, AIRODUMP_NG_GPS_EXT, AIRODUMP_NG_CAP_EXT, IVS2_EXTENSION, KISMET_CSV_EXT, KISMET_NETXML_EXT };
 
