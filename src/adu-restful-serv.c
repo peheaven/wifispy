@@ -71,7 +71,6 @@ void adu_restful_serv_thread( void *arg)
 	}
 
 	mg_set_protocol_http_websocket(nc);
-	s_http_server_opts.enable_directory_listing = "no";
 
 	for (;;) {
 		mg_mgr_poll(&mgr, 1000);
