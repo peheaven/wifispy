@@ -6754,6 +6754,7 @@ int main( int argc, char *argv[] )
 				G.rest_port = atoi(optarg);
 				if (G.rest_port > 0)
 					G.was_rest_mode = 1;
+				break;
 				
             default : goto usage;
         }
