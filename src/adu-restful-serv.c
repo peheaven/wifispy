@@ -7,7 +7,8 @@
 #include "pcap.h"
 #include "adu-restful-serv.h"
 #include "mongoose.h"
-#include "airodump-ng.h"
+
+extern struct globals G;
 
 static void handle_get_ap_list(struct mg_connection *nc, struct http_message *hm) {
 	 /* Send headers */
