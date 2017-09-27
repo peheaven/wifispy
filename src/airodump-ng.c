@@ -73,8 +73,7 @@
 #include "airodump-ng.h"
 #include "osdep/common.h"
 #include "common.h"
-#include "mongoose.h"
-#include "adu-restful.h"
+#include "adu-restful-serv.h"
 
 // libgcrypt thread callback definition for libgcrypt < 1.6.0
 #ifdef USE_GCRYPT
@@ -199,7 +198,7 @@ void resetSelection()
     G.do_sort_always=0;
     memset(G.selected_bssid, '\x00', 6);
 	
-// liudf added 20170925
+	// liudf added 20170925
 	G.was_rest_mode=1;
 	G.rest_port=8009;
 }
@@ -650,8 +649,8 @@ char usage[] =
 "  usage: airodump-ng <options> <interface>[,<interface>,...]\n"
 "\n"
 "  Options:\n"
-"      --restport            : Http rest port\n"
-"      -p		             : Same as --restport\n"
+"      --rest-port            : Http rest port\n"
+"      -p		             : Same as --rest-port\n"
 "      --ivs                 : Save only captured IVs\n"
 "      --gpsd                : Use GPSd\n"
 "      --write      <prefix> : Dump file prefix\n"
@@ -3200,35 +3199,31 @@ void dump_print( int ws_row, int ws_col, int if_num )
 	}
 
 
-	while( ap_cur != NULL )
-	{
+	while( ap_cur != NULL ) {
 	    /* skip APs with only one packet, or those older than 2 min.
 	    * always skip if bssid == broadcast */
 
 	    if( ap_cur->nb_pkt < 2 || time( NULL ) - ap_cur->tlast > G.berlin ||
-		memcmp( ap_cur->bssid, BROADCAST, 6 ) == 0 )
-	    {
-		ap_cur = ap_cur->prev;
-		continue;
+		memcmp( ap_cur->bssid, BROADCAST, 6 ) == 0 ) {
+			ap_cur = ap_cur->prev;
+			continue;
 	    }
 
-	    if(ap_cur->security != 0 && G.f_encrypt != 0 && ((ap_cur->security & G.f_encrypt) == 0))
-	    {
-		ap_cur = ap_cur->prev;
-		continue;
+	    if(ap_cur->security != 0 && G.f_encrypt != 0 && ((ap_cur->security & G.f_encrypt) == 0)) {
+			ap_cur = ap_cur->prev;
+			continue;
 	    }
 
-	    if(is_filtered_essid(ap_cur->essid))
-	    {
-		ap_cur = ap_cur->prev;
-		continue;
+	    if(is_filtered_essid(ap_cur->essid)) {
+			ap_cur = ap_cur->prev;
+			continue;
 	    }
 
 	    num_ap++;
 
 	    if(num_ap < G.start_print_ap) {
-		ap_cur = ap_cur->prev;
-		continue;
+			ap_cur = ap_cur->prev;
+			continue;
 	    }
 
 	    nlines++;
@@ -3245,22 +3240,19 @@ void dump_print( int ws_row, int ws_col, int if_num )
 
 	    len = strlen(strbuf);
 
-	    if(G.singlechan)
-	    {
-		snprintf( strbuf+len, sizeof(strbuf)-len, "  %3d %3d %8lu %8lu %4d",
-			ap_cur->avg_power,
-			ap_cur->rx_quality,
-			ap_cur->nb_bcn,
-			ap_cur->nb_data,
-			ap_cur->nb_dataps );
-	    }
-	    else
-	    {
-		snprintf( strbuf+len, sizeof(strbuf)-len, "  %3d %8lu %8lu %4d",
-			ap_cur->avg_power,
-			ap_cur->nb_bcn,
-			ap_cur->nb_data,
-			ap_cur->nb_dataps );
+	    if(G.singlechan) {
+			snprintf( strbuf+len, sizeof(strbuf)-len, "  %3d %3d %8lu %8lu %4d",
+				ap_cur->avg_power,
+				ap_cur->rx_quality,
+				ap_cur->nb_bcn,
+				ap_cur->nb_data,
+				ap_cur->nb_dataps );
+	    } else {
+			snprintf( strbuf+len, sizeof(strbuf)-len, "  %3d %8lu %8lu %4d",
+				ap_cur->avg_power,
+				ap_cur->nb_bcn,
+				ap_cur->nb_data,
+				ap_cur->nb_dataps );
 	    }
 
 	    len = strlen(strbuf);
@@ -3294,14 +3286,12 @@ void dump_print( int ws_row, int ws_col, int if_num )
 
 	    if( (ap_cur->security & (AUTH_OPN|AUTH_PSK|AUTH_MGT)) == 0 ) snprintf( strbuf+len, sizeof(strbuf)-len, "   ");
 	    else if( ap_cur->security & AUTH_MGT   ) snprintf( strbuf+len, sizeof(strbuf)-len, "MGT");
-	    else if( ap_cur->security & AUTH_PSK   )
-	    {
-		if( ap_cur->security & STD_WEP )
-		    snprintf( strbuf+len, sizeof(strbuf)-len, "SKA");
-		else
-		    snprintf( strbuf+len, sizeof(strbuf)-len, "PSK");
-	    }
-	    else if( ap_cur->security & AUTH_OPN   ) snprintf( strbuf+len, sizeof(strbuf)-len, "OPN");
+	    else if( ap_cur->security & AUTH_PSK   ) {
+			if( ap_cur->security & STD_WEP )
+				snprintf( strbuf+len, sizeof(strbuf)-len, "SKA");
+			else
+				snprintf( strbuf+len, sizeof(strbuf)-len, "PSK");
+	    } else if( ap_cur->security & AUTH_OPN   ) snprintf( strbuf+len, sizeof(strbuf)-len, "OPN");
 
 	    len = strlen(strbuf);
 
@@ -3313,34 +3303,31 @@ void dump_print( int ws_row, int ws_col, int if_num )
 	    strbuf[ws_col-1] = '\0';
 
 	    if(G.selection_ap && ((num_ap) == G.selected_ap)) {
-		if(G.mark_cur_ap) {
-		    if(ap_cur->marked == 0) {
-			ap_cur->marked = 1;
-		    }
-		    else {
-			ap_cur->marked_color++;
-			if(ap_cur->marked_color > (TEXT_MAX_COLOR-1)) {
-			    ap_cur->marked_color = 1;
-			    ap_cur->marked = 0;
+			if(G.mark_cur_ap) {
+				if(ap_cur->marked == 0) {
+					ap_cur->marked = 1;
+				} else {
+					ap_cur->marked_color++;
+					if(ap_cur->marked_color > (TEXT_MAX_COLOR-1)) {
+						ap_cur->marked_color = 1;
+						ap_cur->marked = 0;
+					}
+				}
+				G.mark_cur_ap = 0;
 			}
-		    }
-		    G.mark_cur_ap = 0;
-		}
-		textstyle(TEXT_REVERSE);
-		memcpy(G.selected_bssid, ap_cur->bssid, 6);
+			textstyle(TEXT_REVERSE);
+			memcpy(G.selected_bssid, ap_cur->bssid, 6);
 	    }
 
 	    if(ap_cur->marked) {
-		textcolor_fg(ap_cur->marked_color);
+			textcolor_fg(ap_cur->marked_color);
 	    }
 
 	    fprintf(stderr, "%s", strbuf);
 
-	    if( ws_col > (columns_ap - 4) )
-	    {
-		memset( strbuf, 0, sizeof( strbuf ) );
-		if (G.show_wps)
-		{
+	    if( ws_col > (columns_ap - 4) ) {
+			memset( strbuf, 0, sizeof( strbuf ) );
+			if (G.show_wps) {
 		    if (ap_cur->wps.state != 0xFF)
 		    {
 		        if (ap_cur->wps.ap_setup_locked) // AP setup locked
@@ -3377,71 +3364,73 @@ void dump_print( int ws_row, int ws_col, int if_num )
 		    else {
 		        snprintf(strbuf, sizeof(strbuf)-1, " ");
 		    }
+			
 		    if (G.maxsize_wps_seen <= strlen(strbuf))
-			G.maxsize_wps_seen = strlen(strbuf);
-		    else // write spaces (32)
-			memset( strbuf+strlen(strbuf), 32,  (G.maxsize_wps_seen - strlen(strbuf))  );
-		}
-		if(ap_cur->essid[0] != 0x00)
-		{
-		    if (G.show_wps)
-		    snprintf( strbuf + G.maxsize_wps_seen, sizeof(strbuf)-G.maxsize_wps_seen,
-			    "  %s", ap_cur->essid );
-		    else
-		    snprintf( strbuf,  sizeof( strbuf ) - 1,
-			    "%s", ap_cur->essid );
-		}
-		else
-		{
-		    if (G.show_wps)
-		    snprintf( strbuf + G.maxsize_wps_seen, sizeof(strbuf)-G.maxsize_wps_seen,
-			    "  <length:%3d>%s", ap_cur->ssid_length, "\x00" );
-		    else
-		    snprintf( strbuf,  sizeof( strbuf ) - 1,
-			    "<length:%3d>%s", ap_cur->ssid_length, "\x00" );
-		}
+				G.maxsize_wps_seen = strlen(strbuf);
+				else // write spaces (32)
+				memset( strbuf+strlen(strbuf), 32,  (G.maxsize_wps_seen - strlen(strbuf))  );
+			}
+			
+			if(ap_cur->essid[0] != 0x00)
+			{
+				if (G.show_wps)
+				snprintf( strbuf + G.maxsize_wps_seen, sizeof(strbuf)-G.maxsize_wps_seen,
+					"  %s", ap_cur->essid );
+				else
+				snprintf( strbuf,  sizeof( strbuf ) - 1,
+					"%s", ap_cur->essid );
+			}
+			else
+			{
+				if (G.show_wps)
+				snprintf( strbuf + G.maxsize_wps_seen, sizeof(strbuf)-G.maxsize_wps_seen,
+					"  <length:%3d>%s", ap_cur->ssid_length, "\x00" );
+				else
+				snprintf( strbuf,  sizeof( strbuf ) - 1,
+					"<length:%3d>%s", ap_cur->ssid_length, "\x00" );
+			}
 
-		if (G.show_manufacturer) {
+			if (G.show_manufacturer) {
 
-			if (G.maxsize_essid_seen <= strlen(strbuf))
-				G.maxsize_essid_seen = strlen(strbuf);
-			else // write spaces (32)
-				memset( strbuf+strlen(strbuf), 32,  (G.maxsize_essid_seen - strlen(strbuf))  );
+				if (G.maxsize_essid_seen <= strlen(strbuf))
+					G.maxsize_essid_seen = strlen(strbuf);
+				else // write spaces (32)
+					memset( strbuf+strlen(strbuf), 32,  (G.maxsize_essid_seen - strlen(strbuf))  );
 
-			if (ap_cur->manuf == NULL)
-				ap_cur->manuf = get_manufacturer(ap_cur->bssid[0], ap_cur->bssid[1], ap_cur->bssid[2]);
+				if (ap_cur->manuf == NULL)
+					ap_cur->manuf = get_manufacturer(ap_cur->bssid[0], ap_cur->bssid[1], ap_cur->bssid[2]);
 
-			snprintf( strbuf + G.maxsize_essid_seen , sizeof(strbuf)-G.maxsize_essid_seen, "  %s", ap_cur->manuf );
-		}
+				snprintf( strbuf + G.maxsize_essid_seen , sizeof(strbuf)-G.maxsize_essid_seen, "  %s", ap_cur->manuf );
+			}
 
-		// write spaces (32) until the end of column
-		memset( strbuf+strlen(strbuf), 32, ws_col - (columns_ap - 4 ) );
+			// write spaces (32) until the end of column
+			memset( strbuf+strlen(strbuf), 32, ws_col - (columns_ap - 4 ) );
 
-		// end the string at the end of the column
-		strbuf[ws_col - (columns_ap - 4)] = '\0';
+			// end the string at the end of the column
+			strbuf[ws_col - (columns_ap - 4)] = '\0';
 
-		fprintf( stderr, "  %s", strbuf );
+			fprintf( stderr, "  %s", strbuf );
 	    }
 
 	    fprintf( stderr, "\n" );
 
 	    if( (G.selection_ap && ((num_ap) == G.selected_ap)) || (ap_cur->marked) ) {
-		textstyle(TEXT_RESET);
+			textstyle(TEXT_RESET);
 	    }
 
 	    ap_cur = ap_cur->prev;
 	}
 
-	/* print some informations about each detected station */
+		/* print some informations about each detected station */
 
-	nlines += 3;
+		nlines += 3;
 
-	if( nlines >= (ws_row-1) )
-	    return;
+		if( nlines >= (ws_row-1) )
+			return;
 
-	memset( strbuf, ' ', ws_col - 1 );
-	strbuf[ws_col - 1] = '\0';
-	fprintf( stderr, "%s\n", strbuf );
+		memset( strbuf, ' ', ws_col - 1 );
+		strbuf[ws_col - 1] = '\0';
+		fprintf( stderr, "%s\n", strbuf );
     }
 
     if(G.show_sta) {
@@ -6090,8 +6079,8 @@ int main( int argc, char *argv[] )
 
     struct wif	       *wi[MAX_CARDS];
     struct rx_info     ri;
-    unsigned char      tmpbuf[4096];
-    unsigned char      buffer[4096];
+    unsigned char      tmpbuf[4096] = {0};
+    unsigned char      buffer[4096] = {0};
     unsigned char      *h80211;
     char               *iface[MAX_CARDS];
 
@@ -6134,6 +6123,7 @@ int main( int argc, char *argv[] )
         {"uptime",   0, 0, 'U'},
         {"write-interval", 1, 0, 'I'},
         {"wps",  0, 0, 'W'},
+		{"rest-port", 0, 0, 'p'},
         {0,          0, 0,  0 }
     };
 
@@ -6257,7 +6247,13 @@ int main( int argc, char *argv[] )
     memset(G.f_netmask, '\x00', 6);
     memset(G.wpa_bssid, '\x00', 6);
 
-
+	
+	// liudf added 20170927
+	// initialize restful server parameters
+	// default disable
+	G.was_rest_mode = 0;
+	G.rest_port	= 0;
+	
     /* check the arguments */
 
     for(i=0; long_options[i].name != NULL; i++);
@@ -6370,12 +6366,12 @@ int main( int argc, char *argv[] )
                 G.decloak = 0;
                 break;
 
-	    case 'M':
+	    	case 'M':
 
                 G.show_manufacturer = 1;
                 break;
 
-	    case 'U' :
+	    	case 'U' :
 	    		G.show_uptime = 1;
 	    		break;
 
@@ -6507,8 +6503,7 @@ int main( int argc, char *argv[] )
 
             case 'r' :
 
-                if( G.s_file )
-                {
+                if( G.s_file ) {
                     printf( "Packet source already specified.\n" );
                     printf("\"%s --help\" for help.\n", argv[0]);
                     return( 1 );
@@ -6596,22 +6591,22 @@ int main( int argc, char *argv[] )
                 G.f_essid[G.f_essid_count-1] = optarg;
                 break;
 
-	    case 'R':
+	    	case 'R':
 
 #ifdef HAVE_PCRE
                 if (G.f_essid_regex != NULL)
                 {
-			printf("Error: ESSID regular expression already given. Aborting\n");
-			exit(1);
+					printf("Error: ESSID regular expression already given. Aborting\n");
+					exit(1);
                 }
 
                 G.f_essid_regex = pcre_compile(optarg, 0, &pcreerror, &pcreerroffset, NULL);
 
                 if (G.f_essid_regex == NULL)
                 {
-			printf("Error: regular expression compilation failed at offset %d: %s; aborting\n", pcreerroffset, pcreerror);
-			exit(1);
-		}
+					printf("Error: regular expression compilation failed at offset %d: %s; aborting\n", pcreerroffset, pcreerror);
+					exit(1);
+				}
 #else
                 printf("Error: Airodump-ng wasn't compiled with pcre support; aborting\n");
 #endif
@@ -6704,7 +6699,13 @@ int main( int argc, char *argv[] )
                 if (G.active_scan_sim <= 0)
                     G.active_scan_sim = 0;
                 break;
-
+			
+			case 'p':
+				
+				G.rest_port = atoi(optarg)
+				if (G.rest_port > 0)
+					G.was_rest_mode = 1;
+				
             default : goto usage;
         }
     } while ( 1 );
@@ -6975,17 +6976,21 @@ usage:
     G.airodump_start_time = (char *) calloc( 1, 1000 * sizeof(char) );
     strncpy(G.airodump_start_time, ctime( & start_time ), 1000 - 1);
     G.airodump_start_time[strlen(G.airodump_start_time) - 1] = 0; // remove new line
-    G.airodump_start_time = (char *) realloc( G.airodump_start_time, sizeof(char) * (strlen(G.airodump_start_time) + 1) );
-
-    if( pthread_create( &(G.input_tid), NULL, (void *) input_thread, NULL ) != 0 )
-    {
-	perror( "pthread_create failed" );
-	return 1;
-    }
-
-
-    while( 1 )
-    {
+    G.airodump_start_time = (char *) realloc( G.airodump_start_time, sizeof(char) * (strlen(G.airodump_start_time) + 1) ); 
+	
+	if (G.was_rest_mode) {
+		if( pthread_create( &(G.restful_tid), NULL, (void *) adu_restful_serv_thread, NULL ) != 0 ) {
+			perror( "pthread_create adu_restful_serv_thread failed" );
+			return 1;
+		}
+	} else {
+		if( pthread_create( &(G.input_tid), NULL, (void *) input_thread, NULL ) != 0 ) {
+			perror( "pthread_create input_thread failed" );
+			return 1;
+		}
+	}
+	
+    while( 1 ) {
         if( G.do_exit )
         {
             break;
