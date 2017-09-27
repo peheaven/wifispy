@@ -74,6 +74,7 @@
 #include "osdep/common.h"
 #include "common.h"
 #include "mongoose.h"
+#include "adu-restful.h"
 
 // libgcrypt thread callback definition for libgcrypt < 1.6.0
 #ifdef USE_GCRYPT
@@ -198,7 +199,7 @@ void resetSelection()
     G.do_sort_always=0;
     memset(G.selected_bssid, '\x00', 6);
 	
-	// liudf added 20170925
+// liudf added 20170925
 	G.was_rest_mode=1;
 	G.rest_port=8009;
 }
