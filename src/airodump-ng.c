@@ -75,6 +75,53 @@
 #include "common.h"
 #include "adu-restful-serv.h"
 
+const unsigned char llcnull[4] = {0, 0, 0, 0};
+char *f_ext[NB_EXTENSIONS] = { AIRODUMP_NG_CSV_EXT, AIRODUMP_NG_GPS_EXT, AIRODUMP_NG_CAP_EXT, IVS2_EXTENSION, KISMET_CSV_EXT, KISMET_NETXML_EXT };
+
+unsigned char ZERO[32] =
+"\x00\x00\x00\x00\x00\x00\x00\x00"
+"\x00\x00\x00\x00\x00\x00\x00\x00"
+"\x00\x00\x00\x00\x00\x00\x00\x00"
+"\x00\x00\x00\x00\x00\x00\x00\x00";
+
+const char *OUI_PATHS[] = {
+    "/etc/aircrack-ng/airodump-ng-oui.txt",
+    "/usr/local/etc/aircrack-ng/airodump-ng-oui.txt",
+    "/usr/share/aircrack-ng/airodump-ng-oui.txt",
+    "/var/lib/misc/oui.txt",
+    "/usr/share/misc/oui.txt",
+    "/var/lib/ieee-data/oui.txt",
+    "/usr/share/ieee-data/oui.txt",
+    "/etc/manuf/oui.txt",
+    "/usr/share/wireshark/wireshark/manuf/oui.txt",
+    "/usr/share/wireshark/manuf/oui.txt",
+    NULL
+};
+
+int read_pkts=0;
+
+int abg_chans [] =
+{
+    1, 7, 13, 2, 8, 3, 14, 9, 4, 10, 5, 11, 6, 12,
+    36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108,
+    112, 116, 120, 124, 128, 132, 136, 140, 149,
+    153, 157, 161, 184, 188, 192, 196, 200, 204,
+    208, 212, 216,0
+};
+
+int bg_chans  [] =
+{
+    1, 7, 13, 2, 8, 3, 14, 9, 4, 10, 5, 11, 6, 12, 0
+};
+
+int a_chans   [] =
+{
+    36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108,
+    112, 116, 120, 124, 128, 132, 136, 140, 149,
+    153, 157, 161, 184, 188, 192, 196, 200, 204,
+    208, 212, 216,0
+};
+
 // libgcrypt thread callback definition for libgcrypt < 1.6.0
 #ifdef USE_GCRYPT
 	#if GCRYPT_VERSION_NUMBER < 0x010600
