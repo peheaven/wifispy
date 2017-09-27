@@ -477,6 +477,7 @@ struct globals
     u_int maxsize_wps_seen;
     int show_wps;
 	
+	pthread_t restful_tid;
 	int rest_port;
 	int was_rest_mode;
 }
