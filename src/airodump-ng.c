@@ -6172,7 +6172,7 @@ int main( int argc, char *argv[] )
         {"uptime",   0, 0, 'U'},
         {"write-interval", 1, 0, 'I'},
         {"wps",  0, 0, 'W'},
-		{"rest-port", 0, 0, 'p'},
+		{"rest-port", 1, 0, 'p'},
         {0,          0, 0,  0 }
     };
 
