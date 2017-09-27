@@ -7,6 +7,7 @@
 #include "pcap.h"
 #include "adu-restful-serv.h"
 #include "mongoose.h"
+#include "airodump-ng.h"
 
 extern struct globals G;
 
