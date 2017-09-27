@@ -1,3 +1,9 @@
+#include <sys/ioctl.h>
+#include <sys/types.h>
+
+#include <ctype.h>
+
+#include "version.h"
 #include "pcap.h"
 #include "adu-restful-serv.h"
 #include "mongoose.h"
