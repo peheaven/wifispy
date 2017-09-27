@@ -83,7 +83,7 @@ ASM_AC		= sha1-sse2.S
 OBJS_AD		= airdecap-ng.o crypto.o common.o
 OBJS_PF		= packetforge-ng.o common.o crypto.o
 OBJS_AR		= aireplay-ng.o common.o crypto.o osdep/radiotap/radiotap.o
-OBJS_ADU	= airodump-ng.o common.o crypto.o uniqueiv.o osdep/radiotap/radiotap.o mongoose.o
+OBJS_ADU	= airodump-ng.o common.o crypto.o uniqueiv.o osdep/radiotap/radiotap.o mongoose.o adu-restful.o
 ifneq ($(OSNAME), Linux)
 	OBJS_ADU	+= osdep/common.o
 endif
