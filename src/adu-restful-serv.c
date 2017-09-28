@@ -84,7 +84,7 @@ void adu_restful_serv_thread( void *arg)
 	snprintf(s_http_port, sizeof(s_http_port), "%d", G.rest_port);
 	nc = mg_bind_opt(&mgr, s_http_port, adu_handler, bind_opts);
 	if (nc == NULL) {
-		fprintf(stderr, "Error starting server on port %s: %s\n", G.rest_port,
+		fprintf(stderr, "Error starting server on port %s: %d\n", G.rest_port,
 			*bind_opts.error_string);
 		exit(1);
 	}
