@@ -3035,7 +3035,7 @@ static char *parse_timestamp(unsigned long long timestamp) {
 	return s;
 }
 
-char *dump_ap() {
+char *dump_ap_list() {
         char strbuff[512] = {0};
         struct AP_info *ap_cur;
         struct json_object *jarray_ap = json_object_new_array();
