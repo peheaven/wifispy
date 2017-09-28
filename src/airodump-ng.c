@@ -60,6 +60,7 @@
 #include <termios.h>
 
 #include <sys/wait.h>
+#include <json-c/json.h> //caizhibang add
 
 #ifdef HAVE_PCRE
 #include <pcre.h>
@@ -3033,6 +3034,136 @@ static char *parse_timestamp(unsigned long long timestamp) {
 
 	return s;
 }
+
+char *dump_ap() {
+        char *strbuff[512] = {0};
+        struct AP_info *ap_cur;
+        struct json_object *jarray_ap = json_object_new_array();
+
+        pthread_mutex_lock( &(G.mx_print) );
+
+        ap_cur = G.ap_end;
+        while (ap_cur != NULL) {
+                if(ap_cur->nb_pkt < 2 || time(NULL) - ap_cur->tlast > G.berlin || memcmp(ap_cur->bssid,BROADCAST,6) == 0) {
+                        ap_cur = ap_cur->prev;
+                        continue;
+                }
+
+                if(ap_cur->security != 0 && G.f_encrypt != 0 && ((ap_cur->security & G.f_encrypt) == 0)) {
+                        ap_cur = ap_cur->prev;
+                        continue;
+                }
+
+                if(is_filtered_essid(ap_cur->essid)) {
+                        ap_cur = ap_cur->prev;
+                        continue;
+                }
+
+                struct json_object *jobj = json_object_new_object();
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                snprintf(strbuff,sizeof(strbuff),"%02X:%02X:%02X:%02X:%02X:%02X ",
+                                ap_cur->bssid[0],ap_cur->bssid[1],
+                                ap_cur->bssid[2],ap_cur->bssid[3],
+                                ap_cur->bssid[4],ap_cur->bssid[5]);
+                json_object_object_add(jobj,"bssid",json_object_new_string(strbuff));
+
+
+                json_object_object_add(jobj,"PWR",json_object_new_int(ap_cur->avg_power));
+                json_object_object_add(jobj,"QUAL",json_object_new_int(ap_cur->rx_quality));
+                json_object_object_add(jobj,"Beacons",json_object_new_int64(ap_cur->nb_bcn));
+                json_object_object_add(jobj,"Datas",json_object_new_int64(ap_cur->nb_data));
+                json_object_object_add(jobj,"Datasps",json_object_new_int(ap_cur->nb_dataps));
+                json_object_object_add(jobj,"CH",json_object_new_int(ap_cur->channel));
+                json_object_object_add(jobj,"MB",json_object_new_int(ap_cur->max_speed));
+                json_object_object_add(jobj,"SEC",json_object_new_int((ap_cur->security & STD_QOS) ? 'e' : ' '));
+                json_object_object_add(jobj,"Preamble",json_object_new_int((ap_cur->preamble) ? '.' : ' '));
+
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                if((ap_cur->security & (STD_OPN|STD_WEP|STD_WPA|STD_WPA2)) == 0)
+                        snprintf(strbuff,sizeof(strbuff),"    ");
+                else if(ap_cur->security & STD_WPA2)
+                        snprintf(strbuff,sizeof(strbuff),"WPA2");
+                else if(ap_cur->security & STD_WPA )
+                        snprintf(strbuff,sizeof(strbuff),"WPA");
+                else if(ap_cur->security & STD_WEP )
+                        snprintf(strbuff,sizeof(strbuff),"WEP");
+                else if(ap_cur->security & STD_OPN)
+					snprintf(strbuff,sizeof(strbuff),"OPN");
+                json_object_object_add(jobj,"ENC",json_object_new_string(strbuff));
+
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                if((ap_cur->security & (ENC_WEP|ENC_TKIP|ENC_WRAP|ENC_CCMP|ENC_WEP104|ENC_WEP40)) == 0)
+                        snprintf(strbuff,sizeof(strbuff),"    ");
+                else if(ap_cur->security & ENC_CCMP)
+                        snprintf(strbuff,sizeof(strbuff),"CCMP");
+                else if(ap_cur->security & ENC_WRAP)
+                        snprintf(strbuff,sizeof(strbuff),"WRAP");
+                else if(ap_cur->security & ENC_TKIP)
+                        snprintf(strbuff,sizeof(strbuff),"TKIP");
+                else if(ap_cur->security & ENC_WEP104)
+                        snprintf(strbuff,sizeof(strbuff),"WEP104");
+                else if(ap_cur->security & ENC_WEP40)
+                        snprintf(strbuff,sizeof(strbuff),"WEP40");
+                else if(ap_cur->security & ENC_WEP)
+                        snprintf(strbuff,sizeof(strbuff),"WEP");
+                json_object_object_add(jobj,"CIPHER",json_object_new_string(strbuff));
+
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                if((ap_cur->security & (AUTH_OPN|AUTH_PSK|AUTH_MGT)) == 0)
+                        snprintf(strbuff,sizeof(strbuff),"    ");
+                else if(ap_cur->security & AUTH_MGT)
+                        snprintf(strbuff,sizeof(strbuff),"MGT");
+                else if(ap_cur->security & AUTH_PSK) {
+                        if(ap_cur->security & STD_WEP)
+                                snprintf(strbuff,sizeof(strbuff),"SKA");
+                        else 
+                                snprintf(strbuff,sizeof(strbuff),"PSK");
+                }    
+                else if(ap_cur->security & AUTH_OPN) {
+                        snprintf(strbuff,sizeof(strbuff),"OPN");
+                }    
+                json_object_object_add(jobj,"AUTH",json_object_new_string(strbuff));
+
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                snprintf(strbuff,sizeof(strbuff),"%14s",parse_timestamp(ap_cur->timestamp));
+                json_object_object_add(jobj,"UPTIME",json_object_new_string(strbuff));
+
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                if(ap_cur->essid[0] != 0x00) {
+                        snprintf(strbuff,sizeof(strbuff),"%s",ap_cur->essid);
+                }    
+                else {
+                        snprintf(strbuff,sizeof(strbuff),"<length:%3d>%s",ap_cur->ssid_length,"\x00");
+                }    
+                json_object_object_add(jobj,"ESSID",json_object_new_string(strbuff));
+                memset(strbuff,'\x0',sizeof(strbuff));
+                if(ap_cur->manuf == NULL) {	ap_cur->manuf = get_manufacturer(ap_cur->bssid[0],ap_cur->bssid[1],ap_cur->bssid[2]);
+                }
+                snprintf(strbuff,sizeof(strbuff),"%s",ap_cur->manuf);
+                json_object_object_add(jobj,"MANUF",json_object_new_string(strbuff));
+
+
+                json_object_array_add(jarray_ap,jobj);
+
+                ap_cur = ap_cur->prev;
+        }
+        pthread_mutex_unlock( &(G.mx_print) );
+
+        char *ret = strdup(json_object_to_json_string(jarray_ap));
+        if(!ret) {
+                printf("malloc mem failed!\n");
+                exit(1);
+        }
+        else
+                return ret; 
+}
+					
 
 void dump_print( int ws_row, int ws_col, int if_num )
 {
