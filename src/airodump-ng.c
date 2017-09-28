@@ -3067,7 +3067,7 @@ char *dump_ap_list() {
                 struct json_object *jobj = json_object_new_object();
 
                 memset(strbuff,'\x0',sizeof(strbuff));
-                snprintf(strbuff,sizeof(strbuff),"%02X:%02X:%02X:%02X:%02X:%02X ",
+                snprintf(strbuff,sizeof(strbuff),"%02X:%02X:%02X:%02X:%02X:%02X",
                                 ap_cur->bssid[0],ap_cur->bssid[1],
                                 ap_cur->bssid[2],ap_cur->bssid[3],
                                 ap_cur->bssid[4],ap_cur->bssid[5]);
@@ -3081,8 +3081,14 @@ char *dump_ap_list() {
                 json_object_object_add(jobj,"Datasps",json_object_new_int(ap_cur->nb_dataps));
                 json_object_object_add(jobj,"CH",json_object_new_int(ap_cur->channel));
                 json_object_object_add(jobj,"MB",json_object_new_int(ap_cur->max_speed));
-                json_object_object_add(jobj,"SEC",json_object_new_int((ap_cur->security & STD_QOS) ? 'e' : ' '));
-                json_object_object_add(jobj,"Preamble",json_object_new_int((ap_cur->preamble) ? '.' : ' '));
+			
+				memset(strbuff,'\x0',sizeof(strbuff));
+				snprintf(strbuff,sizeof(strbuff),"%c",((ap_cur->security & STD_QOS) ? 'e' : ' '));
+                json_object_object_add(jobj,"SEC",json_object_new_string(strbuff));
+			
+				memset(strbuff,'\x0',sizeof(strbuff));
+				snprintf(strbuff,sizeof(strbuff),"%c",((ap_cur->preamble) ? '.' : ' '));
+                json_object_object_add(jobj,"Preamble",json_object_new_string(strbuff));
 
 
                 memset(strbuff,'\x0',sizeof(strbuff));
