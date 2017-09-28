@@ -7271,19 +7271,19 @@ usage:
     G.airodump_start_time = (char *) realloc( G.airodump_start_time, sizeof(char) * (strlen(G.airodump_start_time) + 1) ); 
 	
 	if (G.was_rest_mode) {
-		signal( SIGINT,   sighandler );
-		signal( SIGSEGV,  sighandler );
-		signal( SIGTERM,  sighandler );
-		signal( SIGWINCH, sighandler );
-
-		sighandler( SIGWINCH );
+		makedaemon ();
 		
 		if( pthread_create( &(G.restful_tid), NULL, (void *) adu_restful_serv_thread, NULL ) != 0 ) {
 			perror( "pthread_create adu_restful_serv_thread failed" );
 			return 1;
 		}
 	} else {
-		makedaemon ();
+		signal( SIGINT,   sighandler );
+		signal( SIGSEGV,  sighandler );
+		signal( SIGTERM,  sighandler );
+		signal( SIGWINCH, sighandler );
+
+		sighandler( SIGWINCH );
 		
 		if( pthread_create( &(G.input_tid), NULL, (void *) input_thread, NULL ) != 0 ) {
 			perror( "pthread_create input_thread failed" );
