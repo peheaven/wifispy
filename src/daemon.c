@@ -25,6 +25,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <stdio.h>
 
 #include "daemon.h"
 

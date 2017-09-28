@@ -75,6 +75,7 @@
 #include "osdep/common.h"
 #include "common.h"
 #include "adu-restful-serv.h"
+#include "daemon.h"
 
 struct globals G;
 
@@ -3033,6 +3034,10 @@ static char *parse_timestamp(unsigned long long timestamp) {
 	snprintf(s, 14, "%3ud %02u:%02u:%02u", days, hours, mins, secs);
 
 	return s;
+}
+
+char *dump_sta_list() {
+	return NULL;
 }
 
 char *dump_ap_list() {
