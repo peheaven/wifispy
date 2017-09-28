@@ -123,6 +123,7 @@ extern int get_ram_size(void);
 char *get_manufacturer(unsigned char mac0, unsigned char mac1, unsigned char mac2);
 char *dump_ap_list(); //caizhibang add
 char *dump_sta_list();
+char *dump_na_list();
 
 #define AIRODUMP_NG_CSV_EXT "csv"
 #define KISMET_CSV_EXT "kismet.csv"
