@@ -246,10 +246,6 @@ void resetSelection()
     G.do_pause=0;
     G.do_sort_always=0;
     memset(G.selected_bssid, '\x00', 6);
-	
-	// liudf added 20170925
-	G.was_rest_mode=1;
-	G.rest_port=8009;
 }
 
 #define KEY_TAB		0x09	//switch between APs/clients for scrolling
