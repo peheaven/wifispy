@@ -73,8 +73,6 @@ void adu_restful_serv_thread( void *arg)
 	struct mg_mgr mgr;
   	struct mg_connection *nc = NULL;
   	struct mg_bind_opts bind_opts;
-  	int i;
-  	char *cp = NULL;
   	const char *err_str;
 #if MG_ENABLE_SSL
   	const char *ssl_cert = NULL;
@@ -95,7 +93,7 @@ void adu_restful_serv_thread( void *arg)
 	snprintf(s_http_port, sizeof(s_http_port), "%d", G.rest_port);
 	nc = mg_bind_opt(&mgr, s_http_port, adu_handler, bind_opts);
 	if (nc == NULL) {
-		fprintf(stderr, "Error starting server on port %s: %d\n", G.rest_port,
+		fprintf(stderr, "Error starting server on port %d: %s\n", G.rest_port,
 			*bind_opts.error_string);
 		exit(1);
 	}

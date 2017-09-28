@@ -3185,8 +3185,8 @@ char *dump_sta_list() {
         ap_cur = ap_cur->prev;
         }
         pthread_mutex_unlock(&(G.mx_print));
-	　　
-	　　char * ret = strdup(json_object_to_json_string(jarray_sta));
+	
+	char * ret = strdup(json_object_to_json_string(jarray_sta));
         if(!ret) {
                 printf("malloc mem failed!\n");
                 exit(1);
