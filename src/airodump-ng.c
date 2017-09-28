@@ -3036,6 +3036,51 @@ static char *parse_timestamp(unsigned long long timestamp) {
 	return s;
 }
 
+char *dump_na_list() {
+		struct NA_info *na_cur;
+        char strbuff[512] = {0};
+        struct json_object * jarray_na = json_object_new_array();
+
+        pthread_mutex_lock(&(G.mx_print));
+        na_cur = G.na_1st;
+        while(na_cur != NULL) {
+                if(time(NULL) - na_cur->tlast > 120) {
+                        na_cur = na_cur->next;
+                        continue;
+                }
+
+                struct json_object *jobj = json_object_new_object();
+
+                memset(strbuff,'\x0',sizeof(strbuff));
+                snprintf(strbuff,sizeof(strbuff),"%02X:%02X:%02X:%02X:%02X:%02X",
+                                                na_cur->namac[0],na_cur->namac[1],
+                                                na_cur->namac[2],na_cur->namac[3],
+                                                na_cur->namac[4],na_cur->namac[5]);
+                json_object_object_add(jobj,"namac",json_object_new_string(strbuff));
+
+                json_object_object_add(jobj,"channel",json_object_new_int(na_cur->channel));
+                json_object_object_add(jobj,"power",json_object_new_int(na_cur->power));
+                json_object_object_add(jobj,"ack",json_object_new_int(na_cur->ack));
+                json_object_object_add(jobj,"ackps",json_object_new_int(na_cur->ackps));
+                json_object_object_add(jobj,"cts",json_object_new_int(na_cur->cts));
+                json_object_object_add(jobj,"rts_r",json_object_new_int(na_cur->rts_r));
+                json_object_object_add(jobj,"rts_t",json_object_new_int(na_cur->rts_t));
+                json_object_object_add(jobj,"other",json_object_new_int(na_cur->other));
+
+                json_object_array_add(jarray_na,jobj);
+                na_cur = na_cur->next;
+        }
+        pthread_mutex_unlock(&(G.mx_print));
+
+        char *ret = strdup(json_object_to_json_string(jarray_na));
+        if(!ret) {
+                printf("malloc mem failed!\n");
+                exit(1);
+        }
+        else
+                return ret;
+}
+
 char *dump_sta_list() {
 		int i,n;
         struct AP_info *ap_cur;
