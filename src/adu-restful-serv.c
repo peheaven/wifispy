@@ -52,7 +52,6 @@ static void adu_handler(struct mg_connection *nc, int ev, void *ev_data) {
 		}
 	  	break;
 	default:
-		send_error_result(nc, "not support");
 	  	break;
 	}
 }
