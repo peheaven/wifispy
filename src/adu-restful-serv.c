@@ -38,6 +38,16 @@ static void handle_get_sta_list(struct mg_connection *nc, struct http_message *h
 	free(sta_list);
 }
 
+static void handle_get_na_list(struct mg_connection *nc, struct http_message *hm) {
+	 /* Send headers */
+  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
+	
+	char *na_list = dump_na_list();
+	mg_printf_http_chunk(nc, "%s", na_list);
+	mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
+	free(na_list);
+}
+
 static void adu_handler(struct mg_connection *nc, int ev, void *ev_data) {
 	struct http_message *hm = (struct http_message *) ev_data;
 
@@ -47,6 +57,8 @@ static void adu_handler(struct mg_connection *nc, int ev, void *ev_data) {
 			handle_get_ap_list(nc, hm); /* Handle RESTful call */
 	  	} else if (mg_vcmp(&hm->uri, "/kunteng/getstalist") == 0) {
 			handle_get_sta_list(nc, hm);
+		} else if (mg_vcmp(&hm->uri, "/kunteng/getnalist") == 0) {
+			handle_get_na_list(nc, hm);
 	  	} else {
 			send_error_result(nc, "not support");
 		}
