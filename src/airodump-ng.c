@@ -6969,12 +6969,6 @@ usage:
     	if( dump_initialize( G.dump_prefix, ivs_only ) )
     	    return( 1 );
 
-    signal( SIGINT,   sighandler );
-    signal( SIGSEGV,  sighandler );
-    signal( SIGTERM,  sighandler );
-    signal( SIGWINCH, sighandler );
-
-    sighandler( SIGWINCH );
 
     /* fill oui struct if ram is greater than 32 MB */
     if (get_ram_size()  > MIN_RAM_SIZE_LOAD_OUI_RAM) {
@@ -7025,11 +7019,20 @@ usage:
     G.airodump_start_time = (char *) realloc( G.airodump_start_time, sizeof(char) * (strlen(G.airodump_start_time) + 1) ); 
 	
 	if (G.was_rest_mode) {
+		signal( SIGINT,   sighandler );
+		signal( SIGSEGV,  sighandler );
+		signal( SIGTERM,  sighandler );
+		signal( SIGWINCH, sighandler );
+
+		sighandler( SIGWINCH );
+		
 		if( pthread_create( &(G.restful_tid), NULL, (void *) adu_restful_serv_thread, NULL ) != 0 ) {
 			perror( "pthread_create adu_restful_serv_thread failed" );
 			return 1;
 		}
 	} else {
+		makedaemon ();
+		
 		if( pthread_create( &(G.input_tid), NULL, (void *) input_thread, NULL ) != 0 ) {
 			perror( "pthread_create input_thread failed" );
 			return 1;
@@ -7266,16 +7269,16 @@ usage:
 
             /* display the list of access points we have */
 
-	    if(!G.do_pause) {
-		pthread_mutex_lock( &(G.mx_print) );
+			if(!G.do_pause && !G.was_rest_mode) {
+				pthread_mutex_lock( &(G.mx_print) );
 
-		    fprintf( stderr, "\33[1;1H" );
-		    dump_print( G.ws.ws_row, G.ws.ws_col, G.num_cards );
-		    fprintf( stderr, "\33[J" );
-		    fflush( stdout );
+				fprintf( stderr, "\33[1;1H" );
+				dump_print( G.ws.ws_row, G.ws.ws_col, G.num_cards );
+				fprintf( stderr, "\33[J" );
+				fflush( stdout );
 
-		pthread_mutex_unlock( &(G.mx_print) );
-	    }
+				pthread_mutex_unlock( &(G.mx_print) );
+			}
             continue;
         }
 
