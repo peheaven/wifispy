@@ -346,9 +346,9 @@ void input_thread( void *arg) {
 	if(keycode == KEY_r) {
 	    G.do_sort_always = (G.do_sort_always+1)%2;
 	    if(G.do_sort_always)
-		snprintf(G.message, sizeof(G.message), "][ realtime sorting activated");
+			snprintf(G.message, sizeof(G.message), "][ realtime sorting activated");
 	    else
-		snprintf(G.message, sizeof(G.message), "][ realtime sorting deactivated");
+			snprintf(G.message, sizeof(G.message), "][ realtime sorting deactivated");
 	}
 
 	if(keycode == KEY_m) {
@@ -400,25 +400,25 @@ void input_thread( void *arg) {
 
 	if(keycode == KEY_a) {
 	    if(G.show_ap == 1 && G.show_sta == 1 && G.show_ack == 0) {
-		G.show_ap = 1;
-		G.show_sta = 1;
-		G.show_ack = 1;
-		snprintf(G.message, sizeof(G.message), "][ display ap+sta+ack");
+			G.show_ap = 1;
+			G.show_sta = 1;
+			G.show_ack = 1;
+			snprintf(G.message, sizeof(G.message), "][ display ap+sta+ack");
 	    } else if(G.show_ap == 1 && G.show_sta == 1 && G.show_ack == 1) {
-		G.show_ap = 1;
-		G.show_sta = 0;
-		G.show_ack = 0;
-		snprintf(G.message, sizeof(G.message), "][ display ap only");
+			G.show_ap = 1;
+			G.show_sta = 0;
+			G.show_ack = 0;
+			snprintf(G.message, sizeof(G.message), "][ display ap only");
 	    } else if(G.show_ap == 1 && G.show_sta == 0 && G.show_ack == 0) {
-		G.show_ap = 0;
-		G.show_sta = 1;
-		G.show_ack = 0;
-		snprintf(G.message, sizeof(G.message), "][ display sta only");
+			G.show_ap = 0;
+			G.show_sta = 1;
+			G.show_ack = 0;
+			snprintf(G.message, sizeof(G.message), "][ display sta only");
 	    } else if(G.show_ap == 0 && G.show_sta == 1 && G.show_ack == 0) {
-		G.show_ap = 1;
-		G.show_sta = 1;
-		G.show_ack = 0;
-		snprintf(G.message, sizeof(G.message), "][ display ap+sta");
+			G.show_ap = 1;
+			G.show_sta = 1;
+			G.show_ack = 0;
+			snprintf(G.message, sizeof(G.message), "][ display ap+sta");
 	    }
 	}
 
