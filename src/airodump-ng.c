@@ -7034,7 +7034,7 @@ int main( int argc, char *argv[] )
 				G.rest_port = atoi(optarg);
 				break;
 			
-			case 'D':
+			case 'X':
 				G.was_rest_mode = 1;
 				break;
 				
