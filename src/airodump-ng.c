@@ -6643,7 +6643,7 @@ int main( int argc, char *argv[] )
         option_index = 0;
 
         option = getopt_long( argc, argv,
-                        "p:b:c:egiw:s:t:u:m:d:N:R:aHDB:Ahf:r:EC:o:x:MUI:W",
+                        "b:c:egiw:s:t:u:m:Dd:N:R:aHDB:Ahf:r:EC:o:p:x:MUI:W",
                         long_options, &option_index );
 
         if( option < 0 ) break;
@@ -7045,8 +7045,10 @@ int main( int argc, char *argv[] )
 			case 'p':
 				
 				G.rest_port = atoi(optarg);
-				if (G.rest_port > 0)
-					G.was_rest_mode = 1;
+				break;
+			
+			case 'D':
+				G.was_rest_mode = 1;
 				break;
 				
             default : goto usage;
@@ -7315,8 +7317,9 @@ usage:
     G.airodump_start_time[strlen(G.airodump_start_time) - 1] = 0; // remove new line
     G.airodump_start_time = (char *) realloc( G.airodump_start_time, sizeof(char) * (strlen(G.airodump_start_time) + 1) ); 
 	
-	if (G.was_rest_mode) {
-		makedaemon ();
+	if (G.rest_port > 0) {
+		if (G.was_rest_mode)
+			makedaemon ();
 		
 		if( pthread_create( &(G.restful_tid), NULL, (void *) adu_restful_serv_thread, NULL ) != 0 ) {
 			perror( "pthread_create adu_restful_serv_thread failed" );
