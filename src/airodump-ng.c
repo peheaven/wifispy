@@ -441,20 +441,6 @@ void input_thread( void *arg) {
     }
 }
 
-void trim(char *str)
-{
-    int i;
-    int begin = 0;
-    int end = strlen(str) - 1;
-
-    while (isspace((int)str[begin])) begin++;
-    while ((end >= begin) && isspace((int)str[end])) end--;
-    // Shift all characters back to the start of the string array.
-    for (i = begin; i <= end; i++)
-        str[i - begin] = str[i];
-    str[i - begin] = '\0'; // Null terminate string.
-}
-
 FILE *open_oui_file(void) {
 	int i;
 	FILE *fp = NULL;
@@ -696,8 +682,9 @@ char usage[] =
 "  usage: airodump-ng <options> <interface>[,<interface>,...]\n"
 "\n"
 "  Options:\n"
-"      --rest-port            : Http rest port\n"
+"      --rest-port           : Http rest port\n"
 "      -p		             : Same as --rest-port\n"
+"	   -D					 : debug mode for restful mode"
 "      --ivs                 : Save only captured IVs\n"
 "      --gpsd                : Use GPSd\n"
 "      --write      <prefix> : Dump file prefix\n"
@@ -750,8 +737,8 @@ char usage[] =
 
 int is_filtered_netmask(unsigned char *bssid)
 {
-    unsigned char mac1[6];
-    unsigned char mac2[6];
+    unsigned char mac1[6] = {0};
+    unsigned char mac2[6] = {0};
     int i;
 
     for(i=0; i<6; i++)
