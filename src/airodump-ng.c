@@ -3055,11 +3055,13 @@ char *dump_na_list() {
                 json_object_object_add(jobj,"other",json_object_new_int(na_cur->other));
 
                 json_object_array_add(jarray_na,jobj);
+				json_object_put(jobj);
                 na_cur = na_cur->next;
         }
         pthread_mutex_unlock(&(G.mx_print));
 
         char *ret = strdup(json_object_to_json_string(jarray_na));
+		json_object_put(jarray_na);
         if(!ret) {
                 printf("malloc mem failed!\n");
                 exit(1);
@@ -3167,6 +3169,7 @@ char *dump_sta_list() {
                         json_object_object_add(jobj,"ssid",json_object_new_string(strbuff));
 
                         json_object_array_add(jarray_sta,jobj);
+						json_object_put(jobj);
                         st_cur = st_cur->prev;
                 }
         ap_cur = ap_cur->prev;
@@ -3174,6 +3177,7 @@ char *dump_sta_list() {
         pthread_mutex_unlock(&(G.mx_print));
 	
 	char * ret = strdup(json_object_to_json_string(jarray_sta));
+	json_object_put(jarray_sta);
         if(!ret) {
                 printf("malloc mem failed!\n");
                 exit(1);
@@ -3303,13 +3307,17 @@ char *dump_ap_list() {
 
 
                 json_object_array_add(jarray_ap,jobj);
+			
+				json_object_put(jobj);
 
                 ap_cur = ap_cur->prev;
         }
         pthread_mutex_unlock( &(G.mx_print) );
 
         char *ret = strdup(json_object_to_json_string(jarray_ap));
-        if(!ret) {
+        json_object_put(jarray_ap);
+	   
+	   if(!ret) {
                 printf("malloc mem failed!\n");
                 exit(1);
         }
