@@ -85,4 +85,6 @@ int64_t ftello64(FILE * fp);
 
 void calctime(time_t t, float calc);
 
+void trim(char *str);
+
 #endif
