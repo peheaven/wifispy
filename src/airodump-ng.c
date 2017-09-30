@@ -3203,8 +3203,7 @@ static void dump_sta_sort()
     }
 
     G.st_1st = new_st_1st;
-    G.st_end = new_st_end;
-			
+    G.st_end = new_st_end;		
 }
 
 char *dump_na_list() {
