@@ -13,14 +13,14 @@ extern struct globals G;
 
 static void send_error_result(struct mg_connection *nc, const char *msg) {
 	/* Send headers */
-  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
+  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nTransfer-Encoding: chunked\r\n\r\n");
   	mg_printf_http_chunk(nc, "Error: %s", msg);
   	mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 
 static void handle_get_ap_list(struct mg_connection *nc, struct http_message *hm) {
 	 /* Send headers */
-  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
+  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
 	
 	char *ap_list = dump_ap_list();
 	mg_printf_http_chunk(nc, "%s", ap_list);
@@ -30,7 +30,7 @@ static void handle_get_ap_list(struct mg_connection *nc, struct http_message *hm
 
 static void handle_get_sta_list(struct mg_connection *nc, struct http_message *hm) {
 	 /* Send headers */
-  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
+  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
 	
 	char *sta_list = dump_sta_list();
 	mg_printf_http_chunk(nc, "%s", sta_list);
@@ -40,7 +40,7 @@ static void handle_get_sta_list(struct mg_connection *nc, struct http_message *h
 
 static void handle_get_na_list(struct mg_connection *nc, struct http_message *hm) {
 	 /* Send headers */
-  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
+  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
 	
 	char *na_list = dump_na_list();
 	mg_printf_http_chunk(nc, "%s", na_list);
