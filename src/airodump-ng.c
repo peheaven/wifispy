@@ -3141,8 +3141,8 @@ static void dump_ap_sort()
 
     G.ap_1st = new_ap_1st;
     G.ap_end = new_ap_end;
-	}
 }
+
 
 static void dump_sta_sort()
 {
