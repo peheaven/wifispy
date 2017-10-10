@@ -20,4 +20,8 @@ int list_add_packet(struct pkt_buf **list, int length, unsigned char* packet);
 
 int list_tail_free(struct pkt_buf **list);
 
+int remove_namac(unsigned char* mac);
+
+char * getStringTimeFromSec(double seconds);
+
 #endif
