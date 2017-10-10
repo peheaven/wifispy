@@ -39,9 +39,6 @@ const char *OUI_PATHS[] = {
     NULL
 };
 
-void dump_sort( void );
-void dump_print( int ws_row, int ws_col, int if_num );
-
 int is_filtered_netmask(unsigned char *bssid)
 {
     unsigned char mac1[6] = {0};
@@ -1127,6 +1124,29 @@ void dump_sort( void )
 
     G.st_1st = new_st_1st;
     G.st_end = new_st_end;
+}
+
+#define TSTP_SEC 1000000ULL /* It's a 1 MHz clock, so a million ticks per second! */
+#define TSTP_MIN (TSTP_SEC * 60ULL)
+#define TSTP_HOUR (TSTP_MIN * 60ULL)
+#define TSTP_DAY (TSTP_HOUR * 24ULL)
+
+static char *parse_timestamp(unsigned long long timestamp) {
+	static char s[15];
+	unsigned long long rem;
+	unsigned int days, hours, mins, secs;
+
+	days = timestamp / TSTP_DAY;
+	rem = timestamp % TSTP_DAY;
+	hours = rem / TSTP_HOUR;
+	rem %= TSTP_HOUR;
+	mins = rem / TSTP_MIN;
+	rem %= TSTP_MIN;
+	secs = rem / TSTP_SEC;
+
+	snprintf(s, 14, "%3ud %02u:%02u:%02u", days, hours, mins, secs);
+
+	return s;
 }
 
 void dump_print( int ws_row, int ws_col, int if_num )
