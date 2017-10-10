@@ -1810,6 +1810,10 @@ char *dump_sta_list() {
 							ap_cur->bssid[4],ap_cur->bssid[5]);
 
 				json_object_object_add(jobj,"bssid",json_object_new_string(strbuff));
+				if(ap_cur->manuf == NULL) {
+					ap_cur->manuf = get_manufacturer(ap_cur->bssid[0],ap_cur->bssid[1],ap_cur->bssid[2]);
+				}
+				json_object_object_add(jobj,"ap_manuf",json_object_new_string(ap_cur->manuf));
 				json_object_object_add(jobj,"essid",json_object_new_string(ap_cur->essid));		
 
 				memset(strbuff,'\x0',sizeof(strbuff));
@@ -1819,10 +1823,13 @@ char *dump_sta_list() {
 							st_cur->stmac[4],st_cur->stmac[5]);
 				json_object_object_add(jobj,"sta_mac",json_object_new_string(strbuff));
 
-
+				if(st_cur->manuf == NULL) {
+					st_cur->manuf = get_manufacturer(st_cur->stmac[0],st_cur->stmac[1],st_cur->stmac[2]);
+				}
+				json_object_object_add(jobj,"sta_manuf",json_objetct_new_string(st_cur->manuf));
 				json_object_object_add(jobj,"power",json_object_new_int(st_cur->power));
 				json_object_object_add(jobj,"rate_to",json_object_new_int(st_cur->rate_to/1000000));
-
+		
 
 				memset(strbuff,'\x0',sizeof(strbuff));
 				snprintf(strbuff,sizeof(strbuff),"%c",(st_cur->qos_fr_ds ? 'e' : ' '));
