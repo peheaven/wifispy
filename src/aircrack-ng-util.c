@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #include "pcap.h"
 #include "aircrack-ng-util.h"
