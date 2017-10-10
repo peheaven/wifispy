@@ -1,5 +1,10 @@
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+
+#ifndef TIOCGWINSZ
+	#include <sys/termios.h>
+#endif
 
 #include <time.h>
 #include <termios.h>
