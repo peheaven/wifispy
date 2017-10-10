@@ -24,4 +24,8 @@ int remove_namac(unsigned char* mac);
 
 char * getStringTimeFromSec(double seconds);
 
+int get_sta_list_count();
+
+int get_ap_list_count();
+
 #endif
