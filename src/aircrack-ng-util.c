@@ -18,6 +18,7 @@
 
 #include <json-c/json.h> //caizhibang add
 
+#include "crypto.h"
 #include "common.h"
 #include "pcap.h"
 #include "aircrack-ng-util.h"
