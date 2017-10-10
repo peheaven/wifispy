@@ -12,6 +12,7 @@ void input_thread( void *arg);
 int check_shared_key(unsigned char *h80211, int caplen);
 
 struct oui;
+FILE *open_oui_file(void);
 struct oui * load_oui_file(void);
 
 struct pkt_buf;
@@ -27,5 +28,21 @@ char * getStringTimeFromSec(double seconds);
 int get_sta_list_count();
 
 int get_ap_list_count();
+
+char * get_manufacturer_from_string(char * buffer);
+
+void dump_sort( void );
+
+void dump_print( int ws_row, int ws_col, int if_num );
+
+void reset_term();
+
+void textstyle(int attr);
+
+void textcolor_bg(int bg);
+
+void textcolor_fg(int fg);
+
+void textcolor(int attr, int fg, int bg);
 
 #endif
