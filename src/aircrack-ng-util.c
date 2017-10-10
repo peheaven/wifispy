@@ -1,3 +1,12 @@
+#include <sys/time.h>
+
+#include <time.h>
+#include <termios.h>
+#include <string.h>
+#include <stdio.h>
+#include <pthread.h>
+
+#include "pcap.h"
 #include "aircrack-ng-util.h"
 #include "airodump-ng.h"
 
