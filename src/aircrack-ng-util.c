@@ -1,10 +1,13 @@
 #include <sys/time.h>
+#include <sys/types.h>
 
 #include <time.h>
 #include <termios.h>
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <ctype.h>
 
 #include "pcap.h"
 #include "aircrack-ng-util.h"
