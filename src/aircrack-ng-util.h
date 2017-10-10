@@ -3,6 +3,6 @@
 
 int is_filtered_netmask(unsigned char *bssid);
 
-int is_filtered_essid(unsigned char *essid)
+int is_filtered_essid(unsigned char *essid);
 
 #endif
