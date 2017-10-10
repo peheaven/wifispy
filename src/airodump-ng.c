@@ -592,7 +592,7 @@ char usage[] =
 "  Options:\n"
 "      --rest-port           : Http rest port\n"
 "      -p		     		 : Same as --rest-port\n"
-"      -X		     		 : debug mode for restful mode"
+"      -X		     		 : debug mode for restful mode\n"
 "      --ivs                 : Save only captured IVs\n"
 "      --gpsd                : Use GPSd\n"
 "      --write      <prefix> : Dump file prefix\n"
