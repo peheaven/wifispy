@@ -1826,7 +1826,7 @@ char *dump_sta_list() {
 				if(st_cur->manuf == NULL) {
 					st_cur->manuf = get_manufacturer(st_cur->stmac[0],st_cur->stmac[1],st_cur->stmac[2]);
 				}
-				json_object_object_add(jobj,"sta_manuf",json_objetct_new_string(st_cur->manuf));
+				json_object_object_add(jobj,"sta_manuf",json_object_new_string(st_cur->manuf));
 				json_object_object_add(jobj,"power",json_object_new_int(st_cur->power));
 				json_object_object_add(jobj,"rate_to",json_object_new_int(st_cur->rate_to/1000000));
 		
