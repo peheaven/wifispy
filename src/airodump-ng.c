@@ -5320,6 +5320,13 @@ usage:
     G.airodump_start_time[strlen(G.airodump_start_time) - 1] = 0; // remove new line
     G.airodump_start_time = (char *) realloc( G.airodump_start_time, sizeof(char) * (strlen(G.airodump_start_time) + 1) ); 
 	
+	signal( SIGINT,   sighandler );
+	signal( SIGSEGV,  sighandler );
+	signal( SIGTERM,  sighandler );
+	signal( SIGWINCH, sighandler );
+
+	sighandler( SIGWINCH );
+	
 	if (G.rest_port > 0) {
 		if (G.was_rest_mode)
 			makedaemon ();
@@ -5329,13 +5336,6 @@ usage:
 			return 1;
 		}
 	} else {
-		signal( SIGINT,   sighandler );
-		signal( SIGSEGV,  sighandler );
-		signal( SIGTERM,  sighandler );
-		signal( SIGWINCH, sighandler );
-
-		sighandler( SIGWINCH );
-		
 		if( pthread_create( &(G.input_tid), NULL, (void *) input_thread, NULL ) != 0 ) {
 			perror( "pthread_create input_thread failed" );
 			return 1;
