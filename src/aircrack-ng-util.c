@@ -1718,6 +1718,7 @@ int get_sta_list_count() {
 char *dump_na_list() {
 		struct NA_info *na_cur;
         char strbuff[512] = {0};
+		char *na_manuf = NULL;
         struct json_object * jarray_na = json_object_new_array();
 
         pthread_mutex_lock(&(G.mx_print));
@@ -1736,6 +1737,9 @@ char *dump_na_list() {
                                                 na_cur->namac[2],na_cur->namac[3],
                                                 na_cur->namac[4],na_cur->namac[5]);
                 json_object_object_add(jobj,"namac",json_object_new_string(strbuff));
+			
+				na_manuf = get_manufacturer(na_cur->namac[0],na_cur->namac[1],na_cur->namac[2]);
+				json_object_object_add(jobj,"na_manuf",json_object_new_string(na_manuf));
 
                 json_object_object_add(jobj,"channel",json_object_new_int(na_cur->channel));
                 json_object_object_add(jobj,"power",json_object_new_int(na_cur->power));
