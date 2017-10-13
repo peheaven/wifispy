@@ -1,7 +1,7 @@
 #ifndef _AIRCRACK_NG_UTIL_H_
 #define _AIRCRACK_NG_UTIL_H_
 
-#define RATE_ESTIMATOR
+//#define RATE_ESTIMATOR
 
 int is_filtered_netmask(unsigned char *bssid);
 
