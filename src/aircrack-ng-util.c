@@ -1224,13 +1224,21 @@ void dump_print( int ws_row, int ws_col, int if_num )
 				ap_cur->rx_quality,
 				ap_cur->nb_bcn,
 				ap_cur->nb_data,
+#ifdef	RATE_ESTIMATOR
+				calc_rate_est(ap_cur));
+#else
 				ap_cur->nb_dataps );
+#endif
 	    } else {
 			snprintf( strbuf+len, sizeof(strbuf)-len, "  %3d %8lu %8lu %4d",
 				ap_cur->avg_power,
 				ap_cur->nb_bcn,
 				ap_cur->nb_data,
+#ifdef	RATE_ESTIMATOR
+				calc_rate_est(ap_cur));
+#else
 				ap_cur->nb_dataps );
+#endif
 	    }
 
 	    len = strlen(strbuf);
@@ -2022,4 +2030,74 @@ char *dump_ap_list() {
         }
         else
                 return ret; 
+}
+
+#define	HZ				(sysconf(_SC_CLK_TCK))
+#define RATEST_SECONDS 	4		/* length of rate estimator time slot */
+#define RATEST_JIFFIES 	(HZ * RATEST_SECONDS)
+#define SMOOTH_VAUE 	10 /* smoothen integer arithmetics */
+#define MAX_JIFFY_OFFSET 	((~0UL >> 1)-1)
+
+static unsigned long get_jiffies()
+{
+	struct timespec value;
+	clock_getres(CLOCK_REALTIME, &value);
+
+	unsigned long sec = value.tv_sec;
+	long nsec = value.tv_nsec;
+
+	if (sec >= (MAX_JIFFY_OFFSET / HZ))
+		return MAX_JIFFY_OFFSET;
+	nsec += 1000000000L / HZ - 1;
+	nsec /= 1000000000L / HZ;
+	return HZ * sec + nsec;
+}
+
+unsigned long calc_rate_est(struct AP_info *ap)
+{
+	unsigned long prev_s_pkt = ap->nb_data_old;
+	unsigned long cur_s_pkt	= ap->nb_data;
+	unsigned int est_s_slot	= ap->est_slot;
+	const unsigned long now = get_jiffies();
+	const unsigned int est_slot = now / RATEST_JIFFIES;
+	unsigned long pps;
+	unsigned long cur_pkt = 0;
+
+	if (cur_s_pkt == 0)
+		return 0;
+
+	/* init 'bps' to previous slot bytes size */
+	if (est_slot == est_s_slot) {
+		pps = prev_s_pkt;
+		cur_pkt = cur_s_pkt;
+	} else if ((est_slot - 1) == est_slot)
+		pps = cur_s_pkt;
+	else
+		return 0;
+
+	{
+		const unsigned int slot_delta_rtime = RATEST_JIFFIES - (now % RATEST_JIFFIES);
+		const unsigned int prev_ratio = RATEST_JIFFIES * SMOOTH_VAUE / slot_delta_rtime;
+
+		pps = pps * SMOOTH_VAUE / prev_ratio;
+		pps += cur_pkt;
+		return pps / RATEST_SECONDS;
+	}
+}
+
+void rate_estimator(struct AP_info *ap) 
+{
+	unsigned int est_slot = get_jiffies() / RATEST_JIFFIES;
+
+	if (ap->est_slot == est_slot) {
+		/* while we are in 'current time slot' increment traffic counter */
+		ap->nb_data++;
+	} else { /* new time slot */
+		if (ap->est_slot == (est_slot - 1)) /* adjacent slot */
+			ap->nb_data_old = ap->nb_data;
+		else
+			ap->nb_data_old = 0;
+		ap->nb_data = 0;
+		ap->est_slot = est_slot;
+	}
 }

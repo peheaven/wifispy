@@ -1,6 +1,8 @@
 #ifndef _AIRCRACK_NG_UTIL_H_
 #define _AIRCRACK_NG_UTIL_H_
 
+#define RATE_ESTIMATOR
+
 int is_filtered_netmask(unsigned char *bssid);
 
 int is_filtered_essid(unsigned char *essid);
@@ -44,5 +46,9 @@ void textcolor_bg(int bg);
 void textcolor_fg(int fg);
 
 void textcolor(int attr, int fg, int bg);
+
+unsigned long calc_rate_est(struct AP_info *ap);
+
+void rate_estimator(struct AP_info *ap);
 
 #endif

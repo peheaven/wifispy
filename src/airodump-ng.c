@@ -228,9 +228,9 @@ void update_rx_quality( )
 
                 ap_cur->rx_quality = ((float)((float)ap_cur->fcapt / ((float)ap_cur->fcapt + (float)ap_cur->fmiss)) *
 #if defined(__x86_64__) && defined(__CYGWIN__)
-			(0.0f + 100));
+					(0.0f + 100));
 #else
-			100.0f);
+					100.0f);
 #endif
             }
             else ap_cur->rx_quality = 0; /* no packets -> zero quality */
@@ -449,6 +449,12 @@ int dump_initialize( char *prefix, int ivs_only )
     return( 0 );
 }
 
+#ifdef	RATE_ESTIMATOR
+int update_dataps()
+{
+	return 0;
+}
+#else  
 int update_dataps()
 {
     struct timeval tv;
@@ -504,7 +510,7 @@ int update_dataps()
     }
     return(0);
 }
-
+#endif
 
 
 /*
@@ -1533,8 +1539,11 @@ skip_probe:
                 }
 
                 uniqueiv_mark( ap_cur->uiv_root, &h80211[z] );
-
+#ifdef RATE_ESTIMATOR
+				rate_estimator(ap_cur);
+#else
                 ap_cur->nb_data++;
+#endif
             }
 
             // Record all data linked to IV to detect WEP Cloaking
@@ -1560,7 +1569,11 @@ skip_probe:
 			}
 
         } else {
-            ap_cur->nb_data++;
+#ifdef RATE_ESTIMATOR
+			rate_estimator(ap_cur);
+#else
+			ap_cur->nb_data++;
+#endif
         }
 
         z = ( ( h80211[1] & 3 ) != 3 ) ? 24 : 30;

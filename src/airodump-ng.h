@@ -194,9 +194,10 @@ struct AP_info
     unsigned long nb_pkt;     /* total number of packets  */
     unsigned long nb_data;    /* number of  data packets  */
     unsigned long nb_data_old;/* number of data packets/sec*/
+	unsigned long est_slot;	  /* current time slot */	
     int nb_dataps;  /* number of data packets/sec*/
     struct timeval tv;        /* time for data per second */
-
+	
     unsigned char bssid[6];   /* the access point's MAC   */
     char *manuf;              /* the access point's manufacturer */
     unsigned char essid[MAX_IE_ELEMENT_SIZE];
