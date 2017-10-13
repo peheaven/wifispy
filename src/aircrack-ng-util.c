@@ -1773,6 +1773,86 @@ char *dump_na_list() {
                 return ret;
 }
 
+char *dump_all_sta_list() 
+{
+	int i,n;
+	struct ST_info *st_cur;
+    char strbuff[512] = {0};
+    char ssid_list[512] = {0};
+    struct json_object *jarray_sta = json_object_new_array();
+	if (!jarray_sta) return NULL;
+   
+	pthread_mutex_lock( &(G.mx_print));
+	st_cur = G.st_end;
+	while(st_cur != NULL) {
+		if(time(NULL) - st_cur->tlast > G.berlin) {
+			st_cur = st_cur->prev;
+			continue;
+		}
+
+
+		struct json_object * jobj = json_object_new_object();
+
+		memset(strbuff,'\x0',sizeof(strbuff));
+		snprintf(strbuff,sizeof(strbuff),"%02X:%02X:%02X:%02X:%02X:%02X",
+						st_cur->stmac[0],st_cur->stmac[1],
+						st_cur->stmac[2],st_cur->stmac[3],
+						st_cur->stmac[4],st_cur->stmac[5]);
+		json_object_object_add(jobj,"sta_mac",json_object_new_string(strbuff));
+
+		if(st_cur->manuf == NULL) {
+			st_cur->manuf = get_manufacturer(st_cur->stmac[0],st_cur->stmac[1],st_cur->stmac[2]);
+		}
+		json_object_object_add(jobj,"sta_manuf",json_object_new_string(st_cur->manuf));
+		json_object_object_add(jobj,"power",json_object_new_int(st_cur->power));
+		json_object_object_add(jobj,"rate_to",json_object_new_int(st_cur->rate_to/1000000));
+		
+		memset(strbuff,'\x0',sizeof(strbuff));
+		snprintf(strbuff,sizeof(strbuff),"%c",(st_cur->qos_fr_ds ? 'e' : ' '));
+		json_object_object_add(jobj,"qos_fr_ds",json_object_new_string(strbuff));
+
+		memset(strbuff,'\x0',sizeof(strbuff));
+		snprintf(strbuff,sizeof(strbuff),"-%2d",st_cur->rate_from/1000000);
+		json_object_object_add(jobj,"rate_from",json_object_new_string(strbuff));
+
+		memset(strbuff,'\x0',sizeof(strbuff));
+		snprintf(strbuff,sizeof(strbuff),"%c",(st_cur->qos_to_ds ? 'e' : ' '));
+		json_object_object_add(jobj,"qos_to_ds",json_object_new_string(strbuff));
+
+		json_object_object_add(jobj,"missed",json_object_new_int(st_cur->missed));
+		json_object_object_add(jobj,"nb_pkt",json_object_new_int64(st_cur->nb_pkt));
+
+		memset(ssid_list,'\x0',sizeof(ssid_list));
+		for(i=0,n=0;i < NB_PRB; i++) {
+			if(st_cur->probes[i][0] == '\0')
+				continue;
+
+			snprintf(ssid_list + n,sizeof(ssid_list)-n-1,"%c%s",(i>0) ? ',' : ' ',st_cur->probes[i]);
+			n += (1 + strlen(st_cur->probes[i]));
+
+			if(n >= (int)sizeof(ssid_list)) {
+				break;
+			}
+		}
+
+		memset(strbuff,'\x0',sizeof(strbuff));
+		snprintf(strbuff,sizeof(strbuff)-1,"%-32s",ssid_list);
+		json_object_object_add(jobj,"ssid",json_object_new_string(strbuff));
+
+		json_object_array_add(jarray_sta,jobj);
+		st_cur = st_cur->prev;
+	}
+	pthread_mutex_unlock(&(G.mx_print));
+		
+	char * ret = strdup(json_object_to_json_string(jarray_sta));
+	json_object_put(jarray_sta);
+    if(!ret) {
+		printf("malloc mem failed!\n");
+		exit(1);
+	} else
+		return ret;
+}
+
 char *dump_sta_list() {
 		int i,n;
         struct AP_info *ap_cur;
@@ -1786,11 +1866,6 @@ char *dump_sta_list() {
         ap_cur = G.ap_end;
         while(ap_cur != NULL) {
 			if(ap_cur->nb_pkt < 2 || time(NULL) - ap_cur->tlast > G.berlin) {
-				ap_cur = ap_cur->prev;
-				continue;
-			}
-
-			if(ap_cur->security != 0 && G.f_encrypt != 0 && ((ap_cur->security & G.f_encrypt) == 0)) {
 				ap_cur = ap_cur->prev;
 				continue;
 			}

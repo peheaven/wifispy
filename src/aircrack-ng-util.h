@@ -51,4 +51,12 @@ unsigned long calc_rate_est(struct AP_info *ap);
 
 void rate_estimator(struct AP_info *ap);
 
+char *dump_ap_list(); //caizhibang add 
+
+char *dump_sta_list(); 
+
+char *dump_all_sta_list(); 
+
+char *dump_na_list();
+
 #endif
