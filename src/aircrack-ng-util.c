@@ -1748,6 +1748,7 @@ char *dump_na_list() {
 			
 				na_manuf = get_manufacturer(na_cur->namac[0],na_cur->namac[1],na_cur->namac[2]);
 				json_object_object_add(jobj,"na_manuf",json_object_new_string(na_manuf));
+				free(na_manuf);
 
                 json_object_object_add(jobj,"channel",json_object_new_int(na_cur->channel));
                 json_object_object_add(jobj,"power",json_object_new_int(na_cur->power));
