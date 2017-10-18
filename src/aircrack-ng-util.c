@@ -1656,6 +1656,7 @@ int get_ap_list_count() {
 
 static int __get_all_sta_count() {
 	struct ST_info *st_cur;
+	int num_sta = 0;
 	st_cur = G.st_end;
 
 	while( st_cur != NULL )
