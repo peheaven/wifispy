@@ -1659,17 +1659,13 @@ static int __get_all_sta_count() {
 	int num_sta = 0;
 	st_cur = G.st_end;
 
-	while( st_cur != NULL )
-	{
-		if( st_cur->base != ap_cur ||
-			time( NULL ) - st_cur->tlast > G.berlin )
-		{
+	while( st_cur != NULL ) {
+		if( time( NULL ) - st_cur->tlast > G.berlin ) {
 			st_cur = st_cur->prev;
 			continue;
 		}
 
 		num_sta++;
-
 		st_cur = st_cur->prev;
 	}
 }
