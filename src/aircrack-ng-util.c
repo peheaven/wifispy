@@ -1615,14 +1615,9 @@ void dump_print( int ws_row, int ws_col, int if_num )
 }
 
 int get_ap_list_count() {
-    time_t tt;
-    struct tm *lt;
     struct AP_info *ap_cur;
 
     int num_ap;
-
-    tt = time( NULL );
-    lt = localtime( &tt );
 
     ap_cur = G.ap_end;
 
@@ -1652,23 +1647,83 @@ int get_ap_list_count() {
             continue;
         }
 
-	num_ap++;
-	ap_cur = ap_cur->prev;
+		num_ap++;
+		ap_cur = ap_cur->prev;
     }
 
     return num_ap;
 }
 
-int get_sta_list_count() {
-    time_t tt;
-    struct tm *lt;
-    struct AP_info *ap_cur;
+static int __get_all_sta_count() {
+	struct ST_info *st_cur;
+	st_cur = G.st_end;
+
+	while( st_cur != NULL )
+	{
+		if( st_cur->base != ap_cur ||
+			time( NULL ) - st_cur->tlast > G.berlin )
+		{
+			st_cur = st_cur->prev;
+			continue;
+		}
+
+		num_sta++;
+
+		st_cur = st_cur->prev;
+	}
+}
+
+static int __get_connected_sta_count() {
+	struct AP_info *ap_cur;
     struct ST_info *st_cur;
 
     int num_sta;
 
-    tt = time( NULL );
-    lt = localtime( &tt );
+    ap_cur = G.ap_end;
+
+    num_sta = 0;
+
+    while( ap_cur != NULL )
+    {
+        if( ap_cur->nb_pkt < 2 ||
+            time( NULL ) - ap_cur->tlast > G.berlin )
+        {
+            ap_cur = ap_cur->prev;
+            continue;
+        }
+
+        if(memcmp(ap_cur->bssid, BROADCAST, 6) == 0)
+        {
+            ap_cur = ap_cur->prev;
+            continue;
+        }
+
+        st_cur = G.st_end;
+
+        while( st_cur != NULL )
+        {
+            if( st_cur->base != ap_cur ||
+                time( NULL ) - st_cur->tlast > G.berlin )
+            {
+                st_cur = st_cur->prev;
+                continue;
+            }
+
+	    	num_sta++;
+
+            st_cur = st_cur->prev;
+        }
+
+        ap_cur = ap_cur->prev;
+    }
+    return num_sta;
+}
+
+int get_sta_list_count() {
+    struct AP_info *ap_cur;
+    struct ST_info *st_cur;
+
+    int num_sta;
 
     ap_cur = G.ap_end;
 
@@ -1713,7 +1768,7 @@ int get_sta_list_count() {
                 continue;
             }
 
-	    num_sta++;
+	    	num_sta++;
 
             st_cur = st_cur->prev;
         }
@@ -2106,6 +2161,32 @@ char *dump_ap_list() {
         }
         else
                 return ret; 
+}
+
+char *dump_stats()
+{
+	struct json_object *jobj_stats = json_object_new_object();
+	int ap_count, all_sta_count, connected_sta_count;
+	
+	pthread_mutex_lock( &(G.mx_print) );
+	ap_count = get_ap_list_count();
+	all_sta_count = __get_all_sta_count();
+	connected_sta_count = __get_connected_sta_count();
+	pthread_mutex_unlock( &(G.mx_print) );
+	
+	json_object_object_add(jobj_stats, "ap_count", json_object_new_int(ap_count));
+	json_object_object_add(jobj_stats, "all_sta_count", json_object_new_int(all_sta_count));
+	json_object_object_add(jobj_stats, "connected_sta_count", json_object_new_int(connected_sta_count));
+
+	char *ret = strdup(json_object_to_json_string(jobj_stats));
+	json_object_put(jobj_stats);
+
+	if(!ret) {
+			printf("malloc mem failed!\n");
+			exit(1);
+	}
+	else
+			return ret; 
 }
 
 #define	HZ				(sysconf(_SC_CLK_TCK))
