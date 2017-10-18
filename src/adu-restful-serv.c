@@ -8,6 +8,7 @@
 #include "adu-restful-serv.h"
 #include "mongoose.h"
 #include "airodump-ng.h"
+#include "aircrack-ng-util.h"
 
 extern struct globals G;
 
