@@ -59,4 +59,6 @@ char *dump_all_sta_list();
 
 char *dump_na_list();
 
+char *dump_stats();
+
 #endif
