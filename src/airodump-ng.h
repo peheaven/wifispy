@@ -436,6 +436,8 @@ struct globals
 	pthread_t restful_tid;
 	int rest_port;
 	int was_rest_mode;
+
+	int start_hopper;
 };
 
 #endif

@@ -3524,6 +3524,11 @@ void sighandler( int signum)
 
 	if( signum == SIGUSR1 )
 	{
+		if (G.start_hopper > 0)
+			G.start_hopper = 0;
+		else
+			G.start_hopper = 1;
+
 		unused = read( G.cd_pipe[0], &card, sizeof(int) );
 
 		if(G.freqoption)
@@ -3668,6 +3673,11 @@ void channel_hopper(struct wif *wi[], int if_num, int chan_count, pid_t parent)
 
     while( 0 == kill(parent, 0) )
     {
+		if (!G.start_hopper) {
+			usleep(1000);
+			continue;
+		}
+
         for( j = 0; j < if_num; j++ )
         {
             again = 1;
@@ -3766,6 +3776,11 @@ void frequency_hopper(struct wif *wi[], int if_num, int chan_count, pid_t parent
 
     while( 0 == kill(parent, 0) )
     {
+		if (!G.start_hopper) {
+			usleep(1000);
+			continue;
+		}
+
         for( j = 0; j < if_num; j++ )
         {
             again = 1;
@@ -5164,7 +5179,8 @@ usage:
 					if (setuid( getuid() ) == -1) {
 						perror("setuid");
 					}
-
+					
+					G.start_hopper = 1;
                     frequency_hopper(wi, G.num_cards, freq_count, main_pid);
                     exit( 1 );
                 }
@@ -5215,7 +5231,8 @@ usage:
 					if (setuid( getuid() ) == -1) {
 						perror("setuid");
 					}
-
+					
+					G.start_hopper = 1;
                     channel_hopper(wi, G.num_cards, chan_count, main_pid);
                     exit( 1 );
                 }
