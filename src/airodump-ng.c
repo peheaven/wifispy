@@ -3674,7 +3674,10 @@ void channel_hopper(struct wif *wi[], int if_num, int chan_count, pid_t parent)
     while( 0 == kill(parent, 0) )
     {
 		if (!G.start_hopper) {
-			usleep(1000);
+			struct timespec ts;
+			ts.tv_sec = 0;
+			ts.tv_nsec = 1000;
+			nanosleep(&ts, NULL);
 			continue;
 		}
 
