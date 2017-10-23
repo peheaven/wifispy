@@ -1668,6 +1668,7 @@ static int __get_all_sta_count() {
 		num_sta++;
 		st_cur = st_cur->prev;
 	}
+	return num_sta;
 }
 
 static int __get_connected_sta_count() {
