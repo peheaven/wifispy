@@ -3524,7 +3524,7 @@ void sighandler( int signum)
 
 	if( signum == SIGUSR1 )
 	{
-		if (G.start_hopper > 0)
+		if (G.start_hopper == 1)
 			G.start_hopper = 0;
 		else
 			G.start_hopper = 1;
