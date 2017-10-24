@@ -77,6 +77,9 @@
 #include "daemon.h"
 #include "aircrack-ng-util.h"
 
+#define	STOP_CHANNEL_HOPPER		102
+#define	START_CHANNEL_HOPPER	101
+
 struct globals G;
 
 const unsigned char llcnull[4] = {0, 0, 0, 0};
@@ -3524,10 +3527,10 @@ void sighandler( int signum)
 
 	if( signum == SIGUSR1 )
 	{
-		if (G.start_hopper == 1)
-			G.start_hopper = 0;
-		else
-			G.start_hopper = 1;
+		if (G.start_hopper > 100) {
+			G.start_hopper = G.start_hopper == START_CHANNEL_HOPPER?STOP_CHANNEL_HOPPER:START_CHANNEL_HOPPER
+			return;
+		}
 
 		unused = read( G.cd_pipe[0], &card, sizeof(int) );
 
@@ -3673,7 +3676,7 @@ void channel_hopper(struct wif *wi[], int if_num, int chan_count, pid_t parent)
 
     while( 0 == kill(parent, 0) )
     {
-		if (!G.start_hopper) {
+		if (G.start_hopper == STOP_CHANNEL_HOPPER) {
 			struct timespec ts;
 			ts.tv_sec = 0;
 			ts.tv_nsec = 1000;
@@ -3779,8 +3782,11 @@ void frequency_hopper(struct wif *wi[], int if_num, int chan_count, pid_t parent
 
     while( 0 == kill(parent, 0) )
     {
-		if (!G.start_hopper) {
-			usleep(1000);
+		if (G.start_hopper == STOP_CHANNEL_HOPPER) {
+			struct timespec ts;
+			ts.tv_sec = 0;
+			ts.tv_nsec = 1000;
+			nanosleep(&ts, NULL);
 			continue;
 		}
 
@@ -5159,8 +5165,8 @@ usage:
                 unused = pipe( G.cd_pipe );
 
                 signal( SIGUSR1, sighandler );
-
-                if( ! fork() )
+				G.start_hopper = 0;
+                if( ! (G.pid_hopper = fork()) )
                 {
                     /* reopen cards.  This way parent & child don't share resources for
                     * accessing the card (e.g. file descriptors) which may cause
@@ -5183,7 +5189,7 @@ usage:
 						perror("setuid");
 					}
 					
-					G.start_hopper = 1;
+					G.start_hopper = START_CHANNEL_HOPPER;
                     frequency_hopper(wi, G.num_cards, freq_count, main_pid);
                     exit( 1 );
                 }
@@ -5211,8 +5217,8 @@ usage:
                 unused = pipe( G.cd_pipe );
 
                 signal( SIGUSR1, sighandler );
-
-                if( ! fork() )
+				G.start_hopper = 0;
+                if( ! (G.pid_hopper = fork()) )
                 {
                     /* reopen cards.  This way parent & child don't share resources for
                     * accessing the card (e.g. file descriptors) which may cause
@@ -5235,7 +5241,7 @@ usage:
 						perror("setuid");
 					}
 					
-					G.start_hopper = 1;
+					G.start_hopper = START_CHANNEL_HOPPER;
                     channel_hopper(wi, G.num_cards, chan_count, main_pid);
                     exit( 1 );
                 }
