@@ -23,7 +23,10 @@ static void send_error_result(struct mg_connection *nc, const char *msg) {
 static void handle_hopper_switch(struct mg_connection *nc, struct http_message *hm) {
 	 /* Send headers */
   	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
-
+	
+	if (G.pid_hopper > 0)
+		kill(G.pid_hopper, SIGUSR1);
+	
 	mg_printf_http_chunk(nc, "%s", "OK");
 	mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 	free(ap_list);
