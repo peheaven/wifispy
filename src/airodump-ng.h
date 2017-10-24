@@ -438,7 +438,7 @@ struct globals
 	int was_rest_mode;
 
 	int start_hopper;
-	pid	pid_hopper;
+	pid_t	pid_hopper;
 };
 
 #endif

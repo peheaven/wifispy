@@ -29,7 +29,6 @@ static void handle_hopper_switch(struct mg_connection *nc, struct http_message *
 	
 	mg_printf_http_chunk(nc, "%s", "OK");
 	mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
-	free(ap_list);
 }
 
 

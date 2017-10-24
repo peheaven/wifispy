@@ -3528,7 +3528,7 @@ void sighandler( int signum)
 	if( signum == SIGUSR1 )
 	{
 		if (G.start_hopper > 100) {
-			G.start_hopper = G.start_hopper == START_CHANNEL_HOPPER?STOP_CHANNEL_HOPPER:START_CHANNEL_HOPPER
+			G.start_hopper = G.start_hopper == START_CHANNEL_HOPPER?STOP_CHANNEL_HOPPER:START_CHANNEL_HOPPER;
 			return;
 		}
 
