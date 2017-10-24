@@ -19,6 +19,17 @@ static void send_error_result(struct mg_connection *nc, const char *msg) {
   	mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 
+
+static void handle_hopper_switch(struct mg_connection *nc, struct http_message *hm) {
+	 /* Send headers */
+  	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
+
+	mg_printf_http_chunk(nc, "%s", "OK");
+	mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
+	free(ap_list);
+}
+
+
 static void handle_get_stats(struct mg_connection *nc, struct http_message *hm) {
 	 /* Send headers */
   	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\n\r\n");
@@ -84,6 +95,8 @@ static void adu_handler(struct mg_connection *nc, int ev, void *ev_data) {
 			handle_get_na_list(nc, hm);
 		} else if (mg_vcmp(&hm->uri, "/kunteng/getstats") == 0) {
 			handle_get_stats(nc, hm);
+		} else if (mg_vcmp(&hm->uri, "/kunteng/hopperswitch") == 0) {
+			handle_hopper_switch(nc, hm);
 	  	} else {
 			send_error_result(nc, "not support");
 		}
