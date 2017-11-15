@@ -295,14 +295,17 @@ struct globals
     unsigned char prev_bssid[6];
     unsigned char f_bssid[6];
     unsigned char f_netmask[6];
+	unsigned char station[6]; //caizhibang add
     char **f_essid;
     int f_essid_count;
 #ifdef HAVE_PCRE
     pcre *f_essid_regex;
 #endif
     char *dump_prefix;
+	char *dump_kprefix; //caizhibang add
     char *keyout;
     char *f_cap_name;
+	char *f_kcap_name; //caizhibang add
 
     int f_index;            /* outfiles index       */
     FILE *f_txt;            /* output csv file      */
@@ -432,6 +435,7 @@ struct globals
     int file_write_interval;
     u_int maxsize_wps_seen;
     int show_wps;
+	int first_packet; //caizhibang add
 	
 	pthread_t restful_tid;
 	int rest_port;
